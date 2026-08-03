@@ -17,7 +17,9 @@ Ces contraintes définissent le projet. Ne pas les contourner, ne pas les « am�
 explicite.
 
 1. **Aucun backend, aucune dépendance réseau au runtime.** Le build doit produire un site statique
-   déployable tel quel sur GitHub Pages.
+   déployable tel quel sur GitHub Pages. L'application est une PWA : installable et pleinement
+   fonctionnelle hors ligne après le premier chargement — voir § 11 de
+   [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 2. **Pas de saisie des mots trouvés.** Les joueurs écrivent sur papier ; c'est un choix délibéré,
    pas un manque. Ne pas proposer de champ de saisie de mots.
 3. **Pas de dictionnaire, pas de liste de mots, pas de validation de mots.** Aucun asset de ce type
@@ -65,7 +67,11 @@ npm run build     # build de production dans dist/
 npm run preview   # prévisualisation du build
 npm test          # tests unitaires
 npm run lint      # lint
+npm run icons     # régénère les icônes de l'application (SVG + PNG)
 ```
+
+Le service worker n'est enregistré qu'en production : pour vérifier le mode hors ligne, passer par
+`npm run build && npm run preview`, jamais par `npm run dev`.
 
 ## Documentation à tenir à jour
 
@@ -84,8 +90,8 @@ npm run lint      # lint
 En place : le squelette Vite + React + TypeScript, la couche `src/domain/` (dés, tirage, barème,
 parties, répertoire des joueurs, chronomètre) avec ses tests, la persistance `localStorage`
 versionnée et validée, l'affichage de la grille, le chronomètre de manche avec alerte visuelle et
-sonore, les deux panneaux latéraux (barème à gauche, partie et scores à droite), et le workflow de
-vérification et déploiement GitHub Pages.
+sonore, les deux panneaux latéraux (barème à gauche, partie et scores à droite), l'installation en
+PWA avec fonctionnement hors ligne, et le workflow de vérification et déploiement GitHub Pages.
 
 Reste à faire :
 

@@ -136,6 +136,7 @@ vingt parties les plus récentes sont conservées.
 - Totaux cumulés, classement, historique des manches
 - Rappel du barème à l'écran
 - Persistance locale de la partie en cours et des parties passées, reprise possible
+- Installation sur l'écran d'accueil et fonctionnement hors ligne après le premier chargement
 
 ### Hors périmètre (décisions assumées)
 

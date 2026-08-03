@@ -5,6 +5,7 @@
 | Contrainte | Conséquence |
 | --- | --- |
 | Hébergement GitHub Pages | Site **entièrement statique**, aucun code serveur, aucune variable d'environnement secrète |
+| Réseau de salle peu fiable | **Installable et disponible hors ligne** après le premier chargement (§ 11) |
 | Pas de backend | Toute la persistance est locale (`localStorage`) |
 | Pas de dictionnaire | Aucun asset volumineux, bundle de quelques dizaines de Ko |
 | Usage en séance, autour d'une table | Lisibilité à distance, écran souvent en veille : robustesse au rechargement |
@@ -31,9 +32,12 @@ Aucune librairie de gestion d'état externe : l'état tient dans un `useReducer`
 ├── docs/
 │   ├── RULES.md
 │   └── ARCHITECTURE.md
-├── public/
+├── public/                   # Manifeste, icônes, .nojekyll
 ├── scripts/
-│   └── build-font-subset.sh  # Régénère la police des tuiles
+│   ├── build-font-subset.sh  # Régénère la police des tuiles
+│   └── build-icons.mjs       # Régénère les icônes (SVG + PNG)
+├── vite/
+│   └── service-worker.ts     # Plugin de build : génère dist/sw.js
 ├── src/
 │   ├── assets/
 │   │   └── fonts/            # InterDisplay sous-catégorisée + licence OFL
@@ -58,6 +62,7 @@ Aucune librairie de gestion d'état externe : l'état tient dans un `useReducer`
 │   │   ├── audio.ts          # Bips synthétisés (WebAudio)
 │   │   ├── ids.ts            # Identifiants locaux
 │   │   ├── random.ts         # Abstraction du générateur aléatoire
+│   │   ├── register-sw.ts    # Enregistrement du service worker
 │   │   └── storage.ts        # Lecture/écriture localStorage, versionnage
 │   ├── styles/
 │   │   ├── tokens.css
@@ -398,7 +403,71 @@ déploiement. Sans cela, le job `deploy` échoue.
 Le site étant statique et sans routeur, aucune réécriture d'URL n'est nécessaire. Un fichier
 `public/.nojekyll` est publié pour désactiver tout traitement Jekyll.
 
-## 11. Décisions ouvertes
+## 11. Application installable et hors ligne
+
+L'application est une **PWA** : installable sur l'écran d'accueil et pleinement fonctionnelle sans
+réseau après le premier chargement. Ce n'est pas un ornement — le jeu se joue autour d'une table,
+souvent dans une salle au réseau incertain, et l'application n'a de toute façon besoin de personne
+pour tourner.
+
+### 11.1 Manifeste et icônes
+
+`public/manifest.webmanifest` n'emploie que des **chemins relatifs** (`"start_url": "./"`), résolus
+depuis son propre emplacement : le manifeste reste donc valable quel que soit `BASE_PATH`, là où des
+chemins absolus casseraient tout déploiement hors de `/boggle/`.
+
+Les icônes sont produites par [`scripts/build-icons.mjs`](../scripts/build-icons.mjs), **sans aucune
+dépendance ni accès réseau** : le PNG est encodé à la main (zlib est fourni par Node) et les formes
+sont rasterisées par leur fonction de distance signée, qui donne l'anticrénelage sans bibliothèque
+graphique. Les couleurs sont converties depuis les valeurs `oklch` des tokens, plutôt que recopiées
+en hexadécimal — l'icône ne peut pas diverger du thème.
+
+Le « B » est dessiné en **primitives géométriques** (un fût, deux panses évidées), pas posé en
+`<text>`. Un `<text>` rendrait le fichier dépendant d'une police installée sur la machine, et
+surtout impossible à rasteriser sans moteur de rendu. Le SVG et les PNG sortent ainsi d'une
+définition unique et ne peuvent pas se désynchroniser.
+
+| Fichier | Rôle |
+| --- | --- |
+| `favicon.svg`, `icon.svg` | Onglet, et icône vectorielle du manifeste |
+| `icon-192.png`, `icon-512.png` | Manifeste, `purpose: any` — fond aux angles arrondis |
+| `icon-maskable-192.png`, `icon-maskable-512.png` | `purpose: maskable` — fond à bord perdu, contenu réduit à 72 % pour tenir dans la zone sûre |
+| `apple-touch-icon.png` | Écran d'accueil iOS — bord perdu, le système applique son propre masque |
+
+iOS ne lit pas encore `display` du manifeste : les balises `apple-mobile-web-app-*` d'`index.html`
+restent nécessaires. La teinte de l'interface du navigateur suit les deux thèmes, via deux balises
+`theme-color` sous condition `prefers-color-scheme`.
+
+### 11.2 Service worker
+
+Généré au build par [`vite/service-worker.ts`](../vite/service-worker.ts), qui **lit le contenu réel
+de `dist/`** plutôt que le bundle Rollup : c'est ce qui permet d'inclure les fichiers de `public/`
+— icônes et manifeste —, que Rollup ne connaît pas. Le nom du cache dérive de la liste des fichiers,
+dont les noms portent déjà une empreinte de contenu.
+
+Pas de Workbox : pour un site statique de trois fichiers, la stratégie tient en quarante lignes
+lisibles, et le projet garde une dépendance de moins.
+
+| Requête | Stratégie | Pourquoi |
+| --- | --- | --- |
+| Navigation | Réseau d'abord, cache en repli | Un joueur en ligne voit tout de suite la version déployée |
+| Le reste | Cache d'abord | Les noms portent une empreinte : le cache fait autorité |
+| Écritures, autres origines | Ignorées | Rien à mettre en cache |
+
+`skipWaiting` et `clients.claim` font prendre la main à la nouvelle version sans attendre la
+fermeture des onglets ; l'ancien cache est purgé à l'activation.
+
+> **`ignoreVary: true` est indispensable, pas une précaution.** Les serveurs statiques répondent
+> volontiers `Vary: Origin` ou `Vary: Accept-Encoding`. Or la requête de préchargement, émise par le
+> service worker, n'a pas les mêmes en-têtes que celle du navigateur : un `<script crossorigin>`,
+> comme en émet Vite, envoie un `Origin` que le préchargement n'avait pas. Sans cette option, la
+> correspondance échoue et l'application ne se charge pas hors ligne — précisément le cas pour
+> lequel tout ceci existe. Le défaut a été constaté serveur coupé, pas déduit.
+
+Le service worker n'est **pas enregistré en développement** : un cache masquerait le rechargement à
+chaud et donnerait des résultats déroutants.
+
+## 12. Décisions ouvertes
 
 | Sujet | État |
 | --- | --- |
