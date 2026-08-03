@@ -124,6 +124,9 @@ Les parties passées sont conservées sur l'appareil et peuvent être **reprises
 terminée redevient courante et les manches se poursuivent là où elles s'étaient arrêtées. Seules les
 vingt parties les plus récentes sont conservées.
 
+Une partie passée peut aussi être **supprimée**. L'opération demande confirmation sur place, car
+elle est définitive : rien n'ayant jamais quitté l'appareil, il n'existe aucune copie à restaurer.
+
 ## 7. Périmètre fonctionnel
 
 ### Dans le périmètre
@@ -135,7 +138,8 @@ vingt parties les plus récentes sont conservées.
 - Saisie manuelle des scores par joueur et par manche
 - Totaux cumulés, classement, historique des manches
 - Rappel du barème à l'écran
-- Persistance locale de la partie en cours et des parties passées, reprise possible
+- Persistance locale de la partie en cours et des parties passées, reprise et suppression possibles
+- Lien sortant vers un vérificateur de mots externe, pour trancher un litige
 - Installation sur l'écran d'accueil et fonctionnement hors ligne après le premier chargement
 
 ### Hors périmètre (décisions assumées)
@@ -149,9 +153,12 @@ vingt parties les plus récentes sont conservées.
 | Comptes utilisateurs, backend, synchronisation | L'application doit rester purement statique |
 | Multijoueur en réseau | Le jeu se joue autour d'une même table |
 
-### Évolution envisagée
+### Vérification d'un mot litigieux
 
-Une **vérification ponctuelle d'un mot litigieux** pourra être ajoutée : un champ de saisie unique
-ouvrant la recherche du mot sur un service externe (dictionnaire ODS / Scrabble FR). Cette
-fonctionnalité doit rester une **délégation par lien sortant** — elle ne doit pas réintroduire de
-liste de mots dans l'application.
+Elle est **déléguée par lien sortant**. Le panneau des règles renvoie au
+[vérificateur de mots de la Fédération française de Scrabble](https://www.ffscrabble.fr/verificateur-de-mots/),
+à côté du rappel que l'ODS fait référence.
+
+C'est le **seul lien externe** de l'application, et il doit le rester : la délégation est justement
+ce qui permet de trancher un litige sans réintroduire de liste de mots dans le bundle. Hors ligne,
+le lien ne fonctionne pas — tout le reste, si.

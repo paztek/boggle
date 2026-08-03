@@ -258,7 +258,7 @@ Deux **panneaux dépliables** encadrent l'écran, disponibles en permanence :
 | Panneau | Contenu |
 | --- | --- |
 | Gauche — `components/rules/RulesPanel` | Barème du format courant, rappel des règles. Purement présentationnel |
-| Droite — `components/game/GamePanel` | Joueurs, démarrage d'une partie, mode de fin, feuille de scores, historique |
+| Droite — `components/game/GamePanel` | Joueurs, démarrage d'une partie, mode de fin, feuille de scores, historique (reprise et suppression) |
 
 Ils partagent la même coquille, `components/ui/SidePanel` : bouton fixé en haut, voile de fond,
 fermeture au clic hors panneau ou à la touche `Échap`, sortie du flux de tabulation (`inert`) une
@@ -277,6 +277,9 @@ Dans le panneau droit :
   contraindre à chaque frappe rendrait impossible d'effacer pour retaper.
 - En partie, le format de grille est **verrouillé** sur l'écran principal : le changer rendrait les
   manches incomparables. Le bouton « Nouvelle grille » devient « Manche suivante ».
+- La suppression d'une partie passée se confirme **sur place**, par un second bouton qui remplace
+  « Reprendre » et « Supprimer ». Rien n'ayant jamais quitté l'appareil, l'opération est définitive ;
+  et le bouton voisine avec « Reprendre », ce qui rend le geste malheureux d'autant plus facile.
 
 ### 8.2 Chronomètre
 
@@ -471,7 +474,7 @@ chaud et donnerait des résultats déroutants.
 
 | Sujet | État |
 | --- | --- |
-| Vérification d'un mot litigieux par lien sortant | Envisagée, hors du périmètre initial |
+| Vérification d'un mot litigieux par lien sortant | **Tranchée** — lien vers le vérificateur de la FFSc dans le panneau des règles ; seul lien externe de l'application |
 | Conservation de l'historique des parties terminées | **Tranchée** — les 20 dernières parties sont conservées et peuvent être reprises |
 | Ajout d'un joueur en cours de partie | **Tranchée** — hors périmètre ; `addPlayer` reste disponible côté domaine, avec ses tests, si le besoin revient |
 | Licence du dépôt | **Tranchée** — [MIT](../LICENSE) : reprise libre, à condition de conserver la mention de copyright |
