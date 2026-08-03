@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Board } from './components/board/Board.tsx';
+import { RulesPanel } from './components/rules/RulesPanel.tsx';
 import { DICE_ARE_PROVISIONAL, diceFor, type BoardSize } from './domain/dice.ts';
 import { drawBoard, type Board as BoardModel } from './domain/draw.ts';
 import { cryptoRandom } from './lib/random.ts';
@@ -18,6 +19,8 @@ export default function App() {
 
   return (
     <div className="app">
+      <RulesPanel size={size} />
+
       <header className="app__header">
         <h1 className="app__title">Boggle</h1>
         <p className="app__subtitle">Tirage de grilles &amp; feuille de scores</p>

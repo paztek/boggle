@@ -191,6 +191,13 @@ Trois écrans, sans routeur — l'état de la partie détermine la vue :
 2. **Manche** — grille en grand, chronomètre, bouton « Nouvelle grille ».
 3. **Scores** — saisie des totaux de la manche, classement cumulé, rappel du barème.
 
+Élément transversal, disponible sur tous les écrans : un **panneau dépliable à gauche**
+(`components/rules/RulesPanel`) rappelle le barème du format courant et un bref récapitulatif des
+règles. Purement présentationnel (aucun calcul de points), il s'ouvre depuis un bouton fixé en haut
+à gauche, se replie via un voile de fond ou la touche `Échap`, et sort du flux de tabulation
+(`inert`) une fois refermé. Son ouverture est animée en `transform` (glissement) et `opacity`
+(voile) uniquement.
+
 Points d'attention :
 
 - La grille est l'élément dominant : typographie très large, contraste élevé, lisible à un mètre.

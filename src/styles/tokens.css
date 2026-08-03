@@ -23,6 +23,10 @@
   --tile-text: oklch(20% 0.02 60);
   --tile-shadow: 0 1px 0 oklch(80% 0.02 75), 0 3px 8px oklch(60% 0.03 60 / 0.22);
 
+  /* Panneau latéral (barème & règles) et voile de fond */
+  --color-overlay: oklch(24% 0.02 65 / 0.4);
+  --panel-shadow: 0 0 0 1px var(--color-border), 0 12px 32px oklch(50% 0.03 60 / 0.28);
+
   /* Typographie — l'interface reste sur la pile système, seules les tuiles
      chargent une police (cf. styles/fonts.css). */
   --font-body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -57,6 +61,14 @@
   /* Grille */
   --board-max-width: min(92vw, 34rem);
   --board-gap: clamp(0.25rem, 0.15rem + 0.7vw, 0.625rem);
+
+  /* Panneau latéral */
+  --panel-width: min(88vw, 22rem);
+
+  /* Plans (empilement) */
+  --z-panel-toggle: 20;
+  --z-overlay: 30;
+  --z-panel: 40;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -76,5 +88,8 @@
     --tile-bg: oklch(90% 0.02 85);
     --tile-text: oklch(20% 0.02 60);
     --tile-shadow: 0 1px 0 oklch(70% 0.02 75), 0 4px 12px oklch(10% 0.02 60 / 0.5);
+
+    --color-overlay: oklch(10% 0.02 60 / 0.55);
+    --panel-shadow: 0 0 0 1px var(--color-border), 0 12px 32px oklch(4% 0.02 60 / 0.6);
   }
 }
