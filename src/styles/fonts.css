@@ -1,0 +1,23 @@
+/**
+ * Police des tuiles — InterDisplay Bold, sous-catégorisée aux 27 caractères
+ * réellement affichés (A–Z et le « u » de « Qu »).
+ *
+ * Auto-hébergée : aucune requête vers un domaine tiers, contrainte CSP et
+ * GitHub Pages obligent. Le fichier est régénéré par `scripts/build-font-subset.sh`.
+ *
+ * Le reste de l'interface reste sur la pile système (cf. --font-body) : rien
+ * d'autre à télécharger.
+ *
+ * Inter © The Inter Project Authors, licence SIL Open Font 1.1.
+ * Texte complet : src/assets/fonts/Inter-LICENSE.txt
+ */
+@font-face {
+  font-family: 'InterDisplay Subset';
+  src: url('../assets/fonts/inter-display-bold-subset.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  /* Limite la police aux capitales latines : le navigateur ne la sollicite
+     pas pour du texte qu'elle ne couvre pas. */
+  unicode-range: U+0041-005A, U+0075;
+}

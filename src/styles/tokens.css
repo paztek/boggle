@@ -23,9 +23,12 @@
   --tile-text: oklch(20% 0.02 60);
   --tile-shadow: 0 1px 0 oklch(80% 0.02 75), 0 3px 8px oklch(60% 0.03 60 / 0.22);
 
-  /* Typographie */
+  /* Typographie — l'interface reste sur la pile système, seules les tuiles
+     chargent une police (cf. styles/fonts.css). */
   --font-body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-tile: 'Georgia', 'Iowan Old Style', ui-serif, serif;
+  --font-tile: 'InterDisplay Subset', ui-sans-serif, system-ui, sans-serif;
+  /* cv08 : « I » à empattements, lisible en rotation. cv10 : « G » à éperon. */
+  --font-tile-features: 'cv08' 1, 'cv10' 1;
 
   --text-sm: clamp(0.8125rem, 0.78rem + 0.16vw, 0.9375rem);
   --text-base: clamp(0.9375rem, 0.9rem + 0.2vw, 1.0625rem);

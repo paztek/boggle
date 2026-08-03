@@ -41,6 +41,9 @@ d'implémenter.
   manches.
 - **CSS : tokens uniquement.** Couleurs, espacements et tailles viennent de `src/styles/tokens.css`.
   Aucune valeur en dur dans les composants.
+- **Une seule police chargée**, réservée aux tuiles ; l'interface reste sur la pile système. Ne pas
+  la remplacer par `@fontsource/inter`, qui retire la variante `cv08` dont dépend la lisibilité du
+  `I` en rotation — voir § 8.1 de [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - **Animations sur `transform` / `opacity` seulement.** Y compris la rotation des tuiles.
 - **Fichiers courts et cohésifs**, organisés par fonctionnalité et non par type de fichier.
 - Commentaires en français, comme le reste de la documentation.

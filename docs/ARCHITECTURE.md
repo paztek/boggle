@@ -17,6 +17,7 @@
 | **Vite** | Build & dev server | Build statique rapide, configuration `base` triviale pour GitHub Pages |
 | **React + TypeScript** | UI | Typage du modèle de données (parties, manches, scores), composants testables |
 | **CSS natif + custom properties** | Styles | Aucun runtime CSS, tokens de design centralisés, budget CSS respecté |
+| **InterDisplay sous-catégorisée** | Police des tuiles | Voir § 8.1 — auto-hébergée, 2,3 Ko, variantes OpenType de lisibilité |
 | **Vitest + Testing Library** | Tests unitaires / composants | Intégration native avec Vite |
 | **oxlint** | Lint | Fourni par le template Vite, sans configuration ni dépendances lourdes |
 | **GitHub Actions** | CI / déploiement | Build et publication sur Pages à chaque push de `main` |
@@ -31,7 +32,11 @@ Aucune librairie de gestion d'état externe : l'état tient dans un `useReducer`
 │   ├── RULES.md
 │   └── ARCHITECTURE.md
 ├── public/
+├── scripts/
+│   └── build-font-subset.sh  # Régénère la police des tuiles
 ├── src/
+│   ├── assets/
+│   │   └── fonts/            # InterDisplay sous-catégorisée + licence OFL
 │   ├── components/
 │   │   ├── board/            # Grille, tuiles, orientation des lettres
 │   │   ├── scoreboard/       # Tableau des scores, classement, saisie
@@ -52,6 +57,7 @@ Aucune librairie de gestion d'état externe : l'état tient dans un `useReducer`
 │   │   └── storage.ts        # Lecture/écriture localStorage, versionnage
 │   ├── styles/
 │   │   ├── tokens.css
+│   │   ├── fonts.css
 │   │   └── global.css
 │   ├── App.tsx
 │   └── main.tsx
@@ -191,6 +197,34 @@ Points d'attention :
 - Les rotations de tuiles sont appliquées en `transform`, jamais par des propriétés de mise en page.
 - Les tailles suivent des `clamp()` sur les tokens de `styles/tokens.css` : aucune valeur en dur.
 - Navigation clavier complète et respect de `prefers-reduced-motion`.
+
+### 8.1 Typographie des tuiles
+
+L'interface reste sur la **pile système** (`--font-body`) : rien à télécharger. Seules les tuiles
+chargent une police, parce que la lisibilité y est fonctionnelle et non décorative — les lettres
+sont grandes, lues à distance et **pivotées aléatoirement**.
+
+La police retenue est **InterDisplay Bold** (variante optique d'Inter destinée aux grandes tailles),
+sous-catégorisée aux 27 caractères réellement affichés : `A`–`Z` et le `u` de `Qu`. Résultat :
+**2,3 Ko**, inliné en data URI par Vite (sous le seuil de 4 Ko), donc **aucune requête réseau
+supplémentaire** et pas de FOUT.
+
+Deux variantes de caractères OpenType sont activées via `--font-tile-features` :
+
+| Variante | Effet | Pourquoi |
+| --- | --- | --- |
+| `cv08` | `I` à empattements | Sans elle, un `I` pivoté à 90° se réduit à un trait horizontal illisible |
+| `cv10` | `G` à éperon | Sépare nettement le `G` du `O` et du `C` |
+
+> **Ne pas remplacer par `@fontsource/inter`.** Ce paquet retire les variantes de caractères : son
+> fichier ne contient que `calt, ccmp, dnom, frac, locl, numr, pnum, tnum`. `cv08` y est absent, et
+> le `I` redevient un bâton. La police est donc générée depuis la distribution officielle par
+> [`scripts/build-font-subset.sh`](../scripts/build-font-subset.sh), qui préserve explicitement les
+> variantes (`--layout-features+=cv08,cv10`).
+
+Le fichier est versionné dans `src/assets/fonts/` : le build ne dépend pas du réseau, seul le script
+de régénération en a besoin. Inter est sous licence SIL Open Font 1.1, dont le texte accompagne le
+fichier.
 
 ## 9. Tests
 
