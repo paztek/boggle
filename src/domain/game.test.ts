@@ -9,6 +9,7 @@ import {
   endProgress,
   finishGame,
   reopenGame,
+  setRoundDuration,
   setScore,
   standings,
   totals,
@@ -28,7 +29,12 @@ function board(seed = 1) {
 /** Partie 4×4 à deux joueurs, sans manche. */
 function newGame(): Game {
   return createGame(
-    { size: 4, players: [ALICE, BOB], endCondition: { kind: 'libre' } },
+    {
+      size: 4,
+      players: [ALICE, BOB],
+      endCondition: { kind: 'libre' },
+      roundDurationSeconds: 180,
+    },
     'g-1',
     T0,
   );
@@ -58,20 +64,53 @@ describe('createGame', () => {
     expect(game.finishedAt).toBeNull();
   });
 
+  it('retient la durée de manche choisie', () => {
+    expect(newGame().roundDurationSeconds).toBe(180);
+  });
+
   it('refuse une partie sans joueur', () => {
     expect(() =>
-      createGame({ size: 4, players: [], endCondition: { kind: 'libre' } }, 'g-1', T0),
+      createGame(
+        { size: 4, players: [], endCondition: { kind: 'libre' }, roundDurationSeconds: 180 },
+        'g-1',
+        T0,
+      ),
     ).toThrow(RangeError);
   });
 
   it('refuse deux joueurs partageant le même identifiant', () => {
     expect(() =>
       createGame(
-        { size: 4, players: [ALICE, { ...BOB, id: ALICE.id }], endCondition: { kind: 'libre' } },
+        {
+          size: 4,
+          players: [ALICE, { ...BOB, id: ALICE.id }],
+          endCondition: { kind: 'libre' },
+          roundDurationSeconds: 180,
+        },
         'g-1',
         T0,
       ),
     ).toThrow(RangeError);
+  });
+
+  it('refuse une durée de manche nulle ou non entière', () => {
+    const input = { size: 4, players: [ALICE], endCondition: { kind: 'libre' } } as const;
+
+    expect(() => createGame({ ...input, roundDurationSeconds: 0 }, 'g-1', T0)).toThrow(RangeError);
+    expect(() => createGame({ ...input, roundDurationSeconds: 1.5 }, 'g-1', T0)).toThrow(RangeError);
+  });
+});
+
+describe('setRoundDuration', () => {
+  it('change la durée sans toucher aux manches', () => {
+    const game = setRoundDuration(playedGame(), 240);
+
+    expect(game.roundDurationSeconds).toBe(240);
+    expect(game.rounds).toHaveLength(2);
+  });
+
+  it('refuse une durée invalide', () => {
+    expect(() => setRoundDuration(newGame(), 0)).toThrow(RangeError);
   });
 });
 

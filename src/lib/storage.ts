@@ -12,9 +12,20 @@ import type { BoardSize } from '../domain/dice.ts';
 import { ROTATIONS, type Board, type Rotation, type Tile } from '../domain/draw.ts';
 import type { EndCondition, Game, GameStatus, Player, Round } from '../domain/game.ts';
 import type { KnownPlayer } from '../domain/roster.ts';
+import {
+  ALERT_DISABLED,
+  DEFAULT_ALERT_SECONDS,
+  DEFAULT_DURATION_SECONDS,
+  MAX_ALERT_SECONDS,
+  MAX_DURATION_SECONDS,
+  MIN_DURATION_SECONDS,
+  type TimerState,
+} from '../domain/timer.ts';
 
 export const GAMES_KEY = 'boggle:games:v1';
 export const ROSTER_KEY = 'boggle:roster:v1';
+export const PREFS_KEY = 'boggle:prefs:v1';
+export const TIMER_KEY = 'boggle:timer:v1';
 
 const VERSION = 1;
 
@@ -149,6 +160,14 @@ function parseGame(value: unknown): Game | null {
   const finishedAt = value.finishedAt;
   if (finishedAt !== null && !isNonEmptyString(finishedAt)) return null;
 
+  // La durée de manche est arrivée avec le chronomètre : les parties
+  // enregistrées avant ne la portent pas. Les écarter pour si peu ferait
+  // perdre l'historique sans raison — on complète avec la valeur par défaut.
+  const duration = value.roundDurationSeconds;
+  if (duration !== undefined && !(Number.isInteger(duration) && (duration as number) > 0)) {
+    return null;
+  }
+
   return {
     id: value.id,
     size,
@@ -156,6 +175,7 @@ function parseGame(value: unknown): Game | null {
     rounds: rounds as readonly Round[],
     endCondition,
     status,
+    roundDurationSeconds: (duration as number | undefined) ?? DEFAULT_DURATION_SECONDS,
     createdAt: value.createdAt,
     finishedAt,
   };
@@ -226,4 +246,116 @@ export function readRoster(): readonly KnownPlayer[] {
 
 export function writeRoster(roster: readonly KnownPlayer[]): void {
   writeRaw(ROSTER_KEY, { version: VERSION, players: roster });
+}
+
+/* -------------------------------------------------------------------------
+ * Préférences — réglages de l'appareil, pas de la partie.
+ *
+ * Le seuil d'alerte et le son tiennent à la table où l'on joue ; ils n'ont
+ * rien à faire dans le compte rendu d'une partie qu'on pourrait relire
+ * ailleurs (cf. docs/ARCHITECTURE.md § 7).
+ * ---------------------------------------------------------------------- */
+
+export type Preferences = {
+  /** Secondes avant la fin déclenchant l'alerte. `0` désactive. */
+  readonly alertSeconds: number;
+  readonly soundEnabled: boolean;
+  /** Maintien de l'écran allumé pendant qu'une manche est chronométrée. */
+  readonly keepAwake: boolean;
+  /** Durée retenue de la dernière partie créée, proposée à la suivante. */
+  readonly lastDurationSeconds: number;
+};
+
+export const DEFAULT_PREFERENCES: Preferences = {
+  alertSeconds: DEFAULT_ALERT_SECONDS,
+  soundEnabled: true,
+  keepAwake: true,
+  lastDurationSeconds: DEFAULT_DURATION_SECONDS,
+};
+
+function intInRange(value: unknown, min: number, max: number): number | null {
+  return typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max
+    ? value
+    : null;
+}
+
+function boolOr(value: unknown, fallback: boolean): boolean {
+  return typeof value === 'boolean' ? value : fallback;
+}
+
+export function readPrefs(): Preferences {
+  const raw = readRaw(PREFS_KEY);
+  if (!isRecord(raw) || raw.version !== VERSION) return DEFAULT_PREFERENCES;
+
+  // Chaque champ retombe indépendamment sur sa valeur par défaut : une
+  // préférence corrompue ne doit pas coûter les autres.
+  return {
+    alertSeconds:
+      intInRange(raw.alertSeconds, ALERT_DISABLED, MAX_ALERT_SECONDS) ?? DEFAULT_ALERT_SECONDS,
+    soundEnabled: boolOr(raw.soundEnabled, DEFAULT_PREFERENCES.soundEnabled),
+    keepAwake: boolOr(raw.keepAwake, DEFAULT_PREFERENCES.keepAwake),
+    lastDurationSeconds:
+      intInRange(raw.lastDurationSeconds, MIN_DURATION_SECONDS, MAX_DURATION_SECONDS) ??
+      DEFAULT_DURATION_SECONDS,
+  };
+}
+
+export function writePrefs(prefs: Preferences): void {
+  writeRaw(PREFS_KEY, { version: VERSION, ...prefs });
+}
+
+/* -------------------------------------------------------------------------
+ * Session de chronomètre — état de séance, pas d'archive.
+ *
+ * Rangé à part des parties : dans `Round`, l'historique traînerait un chrono
+ * figé dans chaque manche passée, et reprendre une vieille partie
+ * ressusciterait un décompte sans objet.
+ * ---------------------------------------------------------------------- */
+
+export type TimerSession = {
+  readonly gameId: string;
+  readonly roundId: string;
+  readonly state: TimerState;
+};
+
+function parseTimerState(value: unknown): TimerState | null {
+  if (!isRecord(value)) return null;
+
+  switch (value.status) {
+    case 'arrete':
+      return { status: 'arrete' };
+    case 'termine':
+      return { status: 'termine' };
+    case 'en-cours':
+      return typeof value.endsAt === 'number' && Number.isFinite(value.endsAt)
+        ? { status: 'en-cours', endsAt: value.endsAt }
+        : null;
+    case 'suspendu':
+      return typeof value.remainingMs === 'number' && value.remainingMs >= 0
+        ? { status: 'suspendu', remainingMs: value.remainingMs }
+        : null;
+    default:
+      return null;
+  }
+}
+
+export function readTimerSession(): TimerSession | null {
+  const raw = readRaw(TIMER_KEY);
+  if (!isRecord(raw) || raw.version !== VERSION) return null;
+  if (!isNonEmptyString(raw.gameId) || !isNonEmptyString(raw.roundId)) return null;
+
+  const state = parseTimerState(raw.state);
+  return state === null ? null : { gameId: raw.gameId, roundId: raw.roundId, state };
+}
+
+export function writeTimerSession(session: TimerSession | null): void {
+  if (session === null) {
+    try {
+      localStorage.removeItem(TIMER_KEY);
+    } catch {
+      // Stockage indisponible : sans conséquence, la session vit en mémoire.
+    }
+    return;
+  }
+  writeRaw(TIMER_KEY, { version: VERSION, ...session });
 }

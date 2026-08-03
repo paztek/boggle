@@ -55,6 +55,8 @@ export type Game = {
   readonly rounds: readonly Round[];
   readonly endCondition: EndCondition;
   readonly status: GameStatus;
+  /** Durée d'une manche, en secondes — c'est une règle de jeu, propre à la partie. */
+  readonly roundDurationSeconds: number;
   /** ISO 8601. */
   readonly createdAt: string;
   /** ISO 8601, ou `null` tant que la partie n'est pas terminée. */
@@ -65,7 +67,14 @@ export type NewGameInput = {
   readonly size: BoardSize;
   readonly players: readonly Player[];
   readonly endCondition: EndCondition;
+  readonly roundDurationSeconds: number;
 };
+
+function assertDuration(seconds: number): void {
+  if (!Number.isInteger(seconds) || seconds <= 0) {
+    throw new RangeError(`Durée de manche invalide : ${seconds}`);
+  }
+}
 
 export function createGame(input: NewGameInput, id: string, createdAt: string): Game {
   if (input.players.length === 0) {
@@ -75,6 +84,7 @@ export function createGame(input: NewGameInput, id: string, createdAt: string): 
   if (ids.size !== input.players.length) {
     throw new RangeError('Deux joueurs ne peuvent pas partager le même identifiant.');
   }
+  assertDuration(input.roundDurationSeconds);
 
   return {
     id,
@@ -83,9 +93,16 @@ export function createGame(input: NewGameInput, id: string, createdAt: string): 
     rounds: [],
     endCondition: input.endCondition,
     status: 'en-cours',
+    roundDurationSeconds: input.roundDurationSeconds,
     createdAt,
     finishedAt: null,
   };
+}
+
+/** La durée reste réglable en cours de partie — les joueurs ajustent au ressenti. */
+export function setRoundDuration(game: Game, seconds: number): Game {
+  assertDuration(seconds);
+  return { ...game, roundDurationSeconds: seconds };
 }
 
 export function addPlayer(game: Game, player: Player): Game {
