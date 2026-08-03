@@ -13,7 +13,7 @@ type EndConditionFieldProps = {
 };
 
 const DEFAULT_ROUNDS = 5;
-const DEFAULT_TARGET = 100;
+const DEFAULT_TARGET = 200;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));

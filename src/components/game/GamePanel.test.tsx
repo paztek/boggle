@@ -194,7 +194,7 @@ describe('GamePanel — démarrage d’une partie', () => {
     await user.click(screen.getByRole('button', { name: /démarrer la partie/i }));
 
     expect(props.onStart).toHaveBeenCalledWith(
-      expect.objectContaining({ endCondition: { kind: 'score', target: 100 } }),
+      expect.objectContaining({ endCondition: { kind: 'score', target: 200 } }),
     );
   });
 
