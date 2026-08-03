@@ -18,12 +18,13 @@
 | **Vite** | Build & dev server | Build statique rapide, configuration `base` triviale pour GitHub Pages |
 | **React + TypeScript** | UI | Typage du modèle de données (parties, manches, scores), composants testables |
 | **CSS natif + custom properties** | Styles | Aucun runtime CSS, tokens de design centralisés, budget CSS respecté |
-| **InterDisplay sous-catégorisée** | Police des tuiles | Voir § 8.1 — auto-hébergée, 2,3 Ko, variantes OpenType de lisibilité |
+| **InterDisplay sous-catégorisée** | Police des tuiles | Voir § 8.2 — auto-hébergée, 2,2 Ko, inlinée en data URI |
 | **Vitest + Testing Library** | Tests unitaires / composants | Intégration native avec Vite |
 | **oxlint** | Lint | Fourni par le template Vite, sans configuration ni dépendances lourdes |
 | **GitHub Actions** | CI / déploiement | Build et publication sur Pages à chaque push de `main` |
 
-Aucune librairie de gestion d'état externe : l'état tient dans un `useReducer` + contexte React.
+Aucune librairie de gestion d'état externe : l'état tient dans un `useReducer` exposé par
+`hooks/useGame.ts`, dont `App` distribue le résultat en props (§ 7).
 
 ## 3. Structure des dossiers
 
@@ -72,9 +73,14 @@ Aucune librairie de gestion d'état externe : l'état tient dans un `useReducer`
 │   └── main.tsx
 ├── .github/workflows/deploy.yml
 ├── CLAUDE.md
+├── LICENSE
 ├── README.md
+├── index.html
 └── vite.config.ts
 ```
+
+Les tests vivent à côté de ce qu'ils couvrent (`*.test.ts`, `*.test.tsx`) ; `src/pwa.test.ts` fait
+exception et valide le manifeste et le service worker, qui n'appartiennent à aucun module.
 
 Le dossier `domain/` ne dépend **jamais** de React : il est testable en isolation et constitue le
 cœur métier.
@@ -181,14 +187,14 @@ ce qu'un découpage caractère par caractère ne saurait pas exprimer.
 
 Ce sont désormais les **dés français** : 16 dés pour le 4×4, 25 pour le 5×5. Le jeu français porte
 un `Q` **autonome** — aucune face `Qu`. Le digramme reste néanmoins pris en charge par le type
-`Face` et par la police (§ 8.1), au cas où un futur jeu le réintroduirait.
+`Face` et par la police (§ 8.2), au cas où un futur jeu le réintroduirait.
 
 Ces faces sont la **seule** source du tirage : aucune table de fréquence de lettres ne doit être
 introduite en parallèle, sous peine de faire diverger le tirage du jeu physique.
 
 Invariants vérifiés par les tests :
 
-- `DICE_FR_4X4` contient exactement 16 dés, `DICE_FR_5X5` exactement 25 ;
+- `DICE_4X4` contient exactement 16 dés, `DICE_5X5` exactement 25 ;
 - chaque dé possède exactement 6 faces ;
 - un tirage utilise chaque dé exactement une fois ;
 - toute face produite appartient bien au dé affecté à la case.
@@ -213,7 +219,7 @@ qui rend le tirage testable — aucun appel direct à `Math.random()` dans `doma
 
 - L'état applicatif est porté par un `useReducer` dans `hooks/useGame.ts`, consommé directement par
   `App` qui le distribue en props — aucun contexte n'est nécessaire à un seul niveau d'imbrication.
-- Deux clés versionnées, écrites indépendamment :
+- Quatre clés versionnées, écrites indépendamment :
 
   | Clé | Contenu |
   | --- | --- |
@@ -247,11 +253,9 @@ qui rend le tirage testable — aucun appel direct à `Math.random()` dans `doma
 
 ## 8. Interface
 
-Trois écrans, sans routeur — l'état de la partie détermine la vue :
-
-1. **Setup** — format de grille, joueurs, durée de manche.
-2. **Manche** — grille en grand, chronomètre, bouton « Nouvelle grille ».
-3. **Scores** — saisie des totaux de la manche, classement cumulé, rappel du barème.
+**Un seul écran**, sans routeur : la grille occupe le centre, le chronomètre se place dessous dès
+qu'une partie est en cours, et tout le reste vit dans deux panneaux latéraux. Ce parti pris évite de
+faire naviguer les joueurs entre des vues au milieu d'une manche — la grille ne disparaît jamais.
 
 Deux **panneaux dépliables** encadrent l'écran, disponibles en permanence :
 
@@ -267,6 +271,11 @@ est un simple `data-side`. La coquille accepte une ouverture **pilotée** (`open
 ou gère son propre état si ces props sont omises ; `App` la pilote pour n'ouvrir **qu'un panneau à
 la fois** — sur mobile, chacun occupe 88 % de la largeur et ils se recouvriraient.
 
+Le titre et le bouton de fermeture sont **collants** en haut du panneau : les contenus sont longs, et
+devoir remonter pour refermer est pénible sur mobile, où le voile de fond est souvent hors de portée
+du pouce. Le rembourrage appartient donc à la tête et au corps, jamais au panneau lui-même : porté
+par le conteneur défilant, il laisserait le contenu défiler dans la marge au-dessus de la tête.
+
 Dans le panneau droit :
 
 - La feuille de scores est un tableau à `1 + n` colonnes (numéro de manche, puis un joueur par
@@ -281,7 +290,14 @@ Dans le panneau droit :
   « Reprendre » et « Supprimer ». Rien n'ayant jamais quitté l'appareil, l'opération est définitive ;
   et le bouton voisine avec « Reprendre », ce qui rend le geste malheureux d'autant plus facile.
 
-### 8.2 Chronomètre
+Points d'attention :
+
+- La grille est l'élément dominant : typographie très large, contraste élevé, lisible à un mètre.
+- Les rotations de tuiles sont appliquées en `transform`, jamais par des propriétés de mise en page.
+- Les tailles suivent des `clamp()` sur les tokens de `styles/tokens.css` : aucune valeur en dur.
+- Navigation clavier complète et respect de `prefers-reduced-motion`.
+
+### 8.1 Chronomètre
 
 Le chronomètre s'affiche **sous la grille**, dans le flux principal : on ne va pas ouvrir un tiroir
 pour savoir combien de temps il reste. Seuls ses réglages vivent dans le panneau droit.
@@ -320,14 +336,7 @@ ne s'éteigne pas au milieu du décompte. L'API n'existe pas partout et le verro
 l'échec est silencieux. Le système le relâche dès que l'onglet passe en arrière-plan, d'où sa
 reprise au retour au premier plan.
 
-Points d'attention :
-
-- La grille est l'élément dominant : typographie très large, contraste élevé, lisible à un mètre.
-- Les rotations de tuiles sont appliquées en `transform`, jamais par des propriétés de mise en page.
-- Les tailles suivent des `clamp()` sur les tokens de `styles/tokens.css` : aucune valeur en dur.
-- Navigation clavier complète et respect de `prefers-reduced-motion`.
-
-### 8.1 Typographie des tuiles
+### 8.2 Typographie des tuiles
 
 L'interface reste sur la **pile système** (`--font-body`) : rien à télécharger. Seules les tuiles
 chargent une police, parce que la lisibilité y est fonctionnelle et non décorative — les lettres
@@ -336,7 +345,7 @@ sont grandes, lues à distance et **pivotées aléatoirement**.
 La police retenue est **InterDisplay Bold** (variante optique d'Inter destinée aux grandes tailles),
 sous-catégorisée à `A`–`Z` plus le `u` de `Qu` — conservé bien que le jeu français n'en use pas,
 au cas où un futur jeu réintroduirait le digramme. Résultat :
-**2,3 Ko**, inliné en data URI par Vite (sous le seuil de 4 Ko), donc **aucune requête réseau
+**2,2 Ko**, inliné en data URI par Vite (sous le seuil de 4 Ko), donc **aucune requête réseau
 supplémentaire** et pas de FOUT.
 
 Les lettres sont rendues dans le **dessin par défaut** de la police : aucune variante de caractère
@@ -364,6 +373,7 @@ fichier.
 | Unitaire | `domain/timer.ts` — pause/reprise, franchissement du seuil, échéance dépassée | Vitest |
 | Unitaire | `lib/storage.ts` — état corrompu, version obsolète, quota dépassé | Vitest |
 | Unitaire | `lib/audio.ts` — dégradation propre sans WebAudio | Vitest |
+| Intégration | `pwa.test.ts` — manifeste installable, chemins d'icônes existants, stratégie de cache | Vitest |
 | Composants | Panneaux, saisie des scores, chronomètre, rendu de la grille | Vitest + Testing Library |
 
 `domain/timer.ts` reçoit `now` en paramètre, comme le tirage reçoit `RandomFn` : transitions et
@@ -470,7 +480,10 @@ fermeture des onglets ; l'ancien cache est purgé à l'activation.
 Le service worker n'est **pas enregistré en développement** : un cache masquerait le rechargement à
 chaud et donnerait des résultats déroutants.
 
-## 12. Décisions ouvertes
+## 12. Décisions
+
+Aucune décision n'est en suspens à ce jour. Les entrées ci-dessous sont conservées pour la trace :
+elles disent ce qui a été tranché, et pourquoi, afin qu'on ne les rouvre pas sans raison.
 
 | Sujet | État |
 | --- | --- |

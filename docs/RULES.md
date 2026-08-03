@@ -118,6 +118,10 @@ par un bip, désactivable. Ces réglages tiennent à l'appareil et valent pour t
 Le chronomètre ne se lance jamais tout seul, et à zéro il se contente de signaler : il n'enchaîne
 pas la manche suivante et ne saisit aucun score.
 
+Pendant le décompte, l'application demande à l'appareil de **garder l'écran allumé** — personne ne
+touche l'écran pendant une manche, et il s'éteindrait au milieu. Le réglage est désactivable, et
+tous les appareils ne l'autorisent pas.
+
 ### Historique des parties
 
 Les parties passées sont conservées sur l'appareil et peuvent être **reprises** : une partie
@@ -152,6 +156,7 @@ elle est définitive : rien n'ayant jamais quitté l'appareil, il n'existe aucun
 | Calcul des points à partir des mots | Découle de l'absence de saisie des mots |
 | Comptes utilisateurs, backend, synchronisation | L'application doit rester purement statique |
 | Multijoueur en réseau | Le jeu se joue autour d'une même table |
+| Ajout d'un joueur en cours de partie | Les joueurs sont là dès la première manche ; le modèle le supporterait, l'interface ne l'expose pas |
 
 ### Vérification d'un mot litigieux
 

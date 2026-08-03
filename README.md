@@ -22,7 +22,8 @@ manche.
 - Gestion des joueurs, avec répertoire local des joueurs déjà rencontrés
 - Mode de fin de partie : libre, nombre de manches, ou score à atteindre
 - Saisie du score de chaque joueur, manche par manche ; totaux et classement dérivés
-- Chronomètre de manche à durée réglable, avec alerte visuelle et sonore avant la fin
+- Chronomètre de manche à durée réglable, avec alerte visuelle et sonore avant la fin ; l'écran
+  reste allumé pendant le décompte
 - Rappel du barème officiel à l'écran, et lien vers le
   [vérificateur de mots de la FFSc](https://www.ffscrabble.fr/verificateur-de-mots/) en cas de litige
 - Historique des parties : une partie passée peut être reprise ou supprimée
@@ -53,9 +54,14 @@ npm run dev            # serveur de développement
 npm run build          # build de production dans dist/
 npm run preview        # prévisualisation du build, sur /boggle/
 npm test               # tests unitaires
+npm run test:watch     # tests en continu
 npm run test:coverage  # tests avec couverture
 npm run lint           # lint
+npm run icons          # régénère les icônes de l'application
 ```
+
+Le service worker n'est enregistré qu'en production : le mode hors ligne se vérifie via
+`npm run build && npm run preview`, jamais en `npm run dev`.
 
 ## Déploiement
 
@@ -74,8 +80,9 @@ donc pas les assets.
 | Document | Contenu |
 | --- | --- |
 | [docs/RULES.md](docs/RULES.md) | Règles du jeu, barème, déroulé d'une partie, périmètre fonctionnel |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Stack, structure du code, modèle de données, déploiement |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Stack, structure du code, modèle de données, PWA, déploiement |
 | [CLAUDE.md](CLAUDE.md) | Consignes de travail pour Claude Code sur ce dépôt |
+| [LICENSE](LICENSE) | Licence MIT, et licences des éléments tiers inclus |
 
 ## Licence
 

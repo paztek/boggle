@@ -23,7 +23,9 @@ explicite.
 2. **Pas de saisie des mots trouvés.** Les joueurs écrivent sur papier ; c'est un choix délibéré,
    pas un manque. Ne pas proposer de champ de saisie de mots.
 3. **Pas de dictionnaire, pas de liste de mots, pas de validation de mots.** Aucun asset de ce type
-   ne doit entrer dans le dépôt ni dans le bundle.
+   ne doit entrer dans le dépôt ni dans le bundle. Trancher un mot litigieux passe par le **lien
+   sortant** vers la FFSc, dans le panneau des règles — c'est le seul lien externe, et il doit le
+   rester.
 4. **L'application ne calcule pas les points.** Les scores sont saisis manuellement, manche par
    manche. Le barème est affiché en rappel uniquement.
 5. **Les dés sont la seule source du tirage.** Ne jamais introduire de table de fréquence de lettres
@@ -37,15 +39,17 @@ d'implémenter.
 
 - **TypeScript strict.** Pas de `any`, pas de `@ts-ignore`.
 - **Immutabilité.** Toute transition d'état retourne de nouveaux objets. Aucune mutation en place.
-- **`src/domain/` ne dépend pas de React.** Fonctions pures, testables en isolation. Le hasard y est
-  toujours **injecté** (`RandomFn`), jamais appelé directement — c'est ce qui rend le tirage testable.
+- **`src/domain/` ne dépend pas de React.** Fonctions pures, testables en isolation. Tout ce qui
+  n'est pas déterministe y est **injecté**, jamais appelé directement : le hasard (`RandomFn`), mais
+  aussi l'heure (`now`) et les identifiants. C'est ce qui rend le tirage reproductible et le
+  chronomètre testable sans faux timers.
 - **Valeurs dérivées, jamais stockées.** Totaux cumulés et classement se recalculent à partir des
   manches.
 - **CSS : tokens uniquement.** Couleurs, espacements et tailles viennent de `src/styles/tokens.css`.
   Aucune valeur en dur dans les composants.
 - **Une seule police chargée**, réservée aux tuiles ; l'interface reste sur la pile système. Les
   lettres gardent le dessin par défaut de la police, sans variante de caractère OpenType — voir
-  § 8.1 de [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+  § 8.2 de [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - **Animations sur `transform` / `opacity` seulement.** Y compris la rotation des tuiles.
 - **Fichiers courts et cohésifs**, organisés par fonctionnalité et non par type de fichier.
 - Commentaires en français, comme le reste de la documentation.
@@ -62,12 +66,14 @@ d'implémenter.
 ## Commandes
 
 ```bash
-npm run dev       # serveur de développement
-npm run build     # build de production dans dist/
-npm run preview   # prévisualisation du build
-npm test          # tests unitaires
-npm run lint      # lint
-npm run icons     # régénère les icônes de l'application (SVG + PNG)
+npm run dev            # serveur de développement
+npm run build          # build de production dans dist/
+npm run preview        # prévisualisation du build, sur /boggle/
+npm test               # tests unitaires
+npm run test:watch     # tests en continu
+npm run test:coverage  # tests avec couverture
+npm run lint           # lint
+npm run icons          # régénère les icônes de l'application (SVG + PNG)
 ```
 
 Le service worker n'est enregistré qu'en production : pour vérifier le mode hors ligne, passer par
@@ -77,8 +83,9 @@ Le service worker n'est enregistré qu'en production : pour vérifier le mode ho
 
 - Une décision fonctionnelle nouvelle ou un changement de périmètre → [docs/RULES.md](docs/RULES.md)
 - Un choix technique, une dépendance, un changement de modèle de données →
-  [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), section correspondante et tableau des décisions
-  ouvertes
+  [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), section correspondante et tableau des décisions (§ 12)
+- Le README décrit le projet **pour un lecteur extérieur** : sa liste de fonctionnalités doit rester
+  vraie, sans rubrique « prévu » qui survivrait à la livraison
 
 ## Git
 
@@ -87,11 +94,17 @@ Le service worker n'est enregistré qu'en production : pour vérifier le mode ho
 
 ## État actuel
 
-En place : le squelette Vite + React + TypeScript, la couche `src/domain/` (dés, tirage, barème,
-parties, répertoire des joueurs, chronomètre) avec ses tests, la persistance `localStorage`
-versionnée et validée, l'affichage de la grille, le chronomètre de manche avec alerte visuelle et
-sonore, les deux panneaux latéraux (barème à gauche, partie et scores à droite), l'installation en
-PWA avec fonctionnement hors ligne, et le workflow de vérification et déploiement GitHub Pages.
+Le périmètre décrit dans [docs/RULES.md](docs/RULES.md) est **entièrement couvert**, et le tableau
+des décisions (§ 12 de [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)) ne contient plus rien en
+suspens.
 
-Le périmètre décrit dans [docs/RULES.md](docs/RULES.md) est couvert. Voir la section
-« Décisions ouvertes » de [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+En place : la couche `src/domain/` (dés, tirage, barème, parties, répertoire des joueurs,
+chronomètre) avec ses tests ; la persistance `localStorage` versionnée, validée champ par champ et
+répartie sur quatre clés ; la grille ; le chronomètre de manche à durée réglable, avec alerte
+visuelle et sonore et maintien de l'écran allumé ; les deux panneaux latéraux (barème et règles à
+gauche, partie et scores à droite) ; l'historique des parties, avec reprise et suppression ;
+l'installation en PWA avec fonctionnement hors ligne ; et le workflow de vérification et déploiement
+GitHub Pages.
+
+L'application est déployée sur <https://paztek.github.io/boggle/> et publiée sous licence
+[MIT](LICENSE).
