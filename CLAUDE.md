@@ -81,13 +81,14 @@ npm run lint      # lint
 
 ## État actuel
 
-En place : le squelette Vite + React + TypeScript, la couche `src/domain/` (dés, tirage, barème)
-avec ses tests, l'affichage de la grille, et le workflow de vérification et déploiement GitHub Pages.
+En place : le squelette Vite + React + TypeScript, la couche `src/domain/` (dés, tirage, barème,
+parties, répertoire des joueurs) avec ses tests, la persistance `localStorage` versionnée et
+validée, l'affichage de la grille, les deux panneaux latéraux (barème à gauche, partie et scores à
+droite), et le workflow de vérification et déploiement GitHub Pages.
 
 Restent à faire :
 
-- Réducteur de partie (`src/domain/game.ts`) : joueurs, manches, scores saisis, totaux dérivés.
-- Persistance `localStorage` versionnée et validée (`src/lib/storage.ts`).
-- Écrans Setup et Scores, chronomètre de manche.
+- Chronomètre de manche (`src/components/timer/`, `src/hooks/useCountdown.ts`).
+- Exposer l'ajout d'un joueur en cours de partie — `addPlayer` existe déjà côté domaine.
 
 Voir la section « Décisions ouvertes » de [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

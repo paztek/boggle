@@ -1,0 +1,133 @@
+/* Coquille des panneaux dépliables latéraux.
+   Animations sur transform / opacity uniquement (cf. CLAUDE.md). */
+
+.side-panel__toggle {
+  position: fixed;
+  top: var(--space-md);
+  z-index: var(--z-panel-toggle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  min-height: 2.75rem;
+  padding: var(--space-xs) var(--space-md);
+  box-shadow: var(--panel-shadow);
+  transition: transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.side-panel__toggle[data-side='left'] {
+  left: var(--space-md);
+}
+
+.side-panel__toggle[data-side='right'] {
+  right: var(--space-md);
+}
+
+.side-panel__toggle:hover {
+  transform: translateY(-1px);
+}
+
+.side-panel__toggle:active {
+  transform: translateY(1px);
+}
+
+/* Sur les écrans étroits, les deux boutons partagent la même ligne : on
+   resserre le rembourrage plutôt que de les laisser se chevaucher. */
+@media (max-width: 30rem) {
+  .side-panel__toggle {
+    padding-inline: var(--space-xs);
+  }
+}
+
+.side-panel__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background-color: var(--color-overlay);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--duration-normal) var(--ease-out-expo),
+    visibility 0s linear var(--duration-normal);
+}
+
+.side-panel__overlay[data-open='true'] {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity var(--duration-normal) var(--ease-out-expo),
+    visibility 0s;
+}
+
+.side-panel__panel {
+  position: fixed;
+  top: 0;
+  z-index: var(--z-panel);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  width: var(--panel-width);
+  height: 100dvh;
+  padding: var(--space-lg);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background-color: var(--color-bg-elevated);
+  box-shadow: var(--panel-shadow);
+  transition: transform var(--duration-normal) var(--ease-out-expo);
+}
+
+.side-panel__panel[data-side='left'] {
+  left: 0;
+  transform: translateX(-100%);
+}
+
+.side-panel__panel[data-side='right'] {
+  right: 0;
+  transform: translateX(100%);
+}
+
+.side-panel__panel[data-open='true'] {
+  transform: translateX(0);
+}
+
+.side-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.side-panel__heading {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.side-panel__close {
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: var(--text-xl);
+  line-height: 1;
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+}
+
+.side-panel__close:hover {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+.side-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}

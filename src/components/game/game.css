@@ -1,0 +1,331 @@
+/* Contenu du panneau droit : joueurs, partie, feuille de scores, historique.
+   La coquille (bouton, voile, glissement) vit dans ui/side-panel.css. */
+
+.game__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.game__subheading {
+  font-size: var(--text-base);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.game__form,
+.game__field,
+.game__fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.game__fieldset {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin: 0;
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+}
+
+.game__label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.game__hint {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.game__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+/* --- Champs ------------------------------------------------------------- */
+
+.game__input,
+.game__number,
+.game__score {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+  min-height: 2.75rem;
+  padding: var(--space-2xs) var(--space-xs);
+}
+
+.game__input {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.game__number {
+  width: 5rem;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.game__number:disabled {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.game__choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--text-sm);
+}
+
+.game__choice input[type='radio'] {
+  accent-color: var(--color-accent);
+  /* Cible tactile confortable sans agrandir la ligne. */
+  height: 1.15rem;
+  width: 1.15rem;
+  flex-shrink: 0;
+}
+
+/* --- Boutons ------------------------------------------------------------ */
+
+.game__button {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  min-height: 2.75rem;
+  padding: var(--space-2xs) var(--space-md);
+  transition:
+    background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.game__button:hover:not(:disabled) {
+  background-color: var(--color-surface);
+}
+
+.game__button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.game__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.game__button[aria-pressed='true'] {
+  background-color: var(--color-surface);
+  border-color: var(--color-text-muted);
+}
+
+.game__button--accent {
+  background-color: var(--color-accent);
+  border-color: transparent;
+  color: var(--color-accent-contrast);
+}
+
+.game__button--accent:hover:not(:disabled) {
+  background-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+/* --- Joueurs ------------------------------------------------------------ */
+
+.game__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.game__chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg);
+  font-size: var(--text-sm);
+  padding-left: var(--space-sm);
+}
+
+.game__chip[data-selected='true'] {
+  background-color: var(--color-surface);
+  border-color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.game__chip-add {
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: var(--space-2xs) 0;
+}
+
+.game__chip-action {
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: var(--text-base);
+  line-height: 1;
+  height: 1.75rem;
+  width: 1.75rem;
+  flex-shrink: 0;
+}
+
+.game__chip-action:hover {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* --- Feuille de scores -------------------------------------------------- */
+
+/* Au-delà de trois ou quatre joueurs, le tableau défile dans le panneau
+   plutôt que d'élargir la page. */
+.game__table-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.game__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.game__table-caption {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-align: left;
+  padding-bottom: var(--space-xs);
+}
+
+.game__table th,
+.game__table td {
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-2xs);
+  text-align: center;
+}
+
+.game__table thead th {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.game__col-round {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.game__score {
+  width: 3.5rem;
+  min-height: 2.25rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Les flèches natives volent une place précieuse dans une cellule étroite. */
+.game__score::-webkit-outer-spin-button,
+.game__score::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.game__score {
+  appearance: textfield;
+}
+
+.game__total {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.game__total[data-leader='true'] {
+  color: var(--color-accent);
+}
+
+/* --- Avancement & historique -------------------------------------------- */
+
+.game__progress {
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.game__banner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  font-size: var(--text-sm);
+  padding: var(--space-sm);
+}
+
+.game__history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.game__history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.game__history-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+.game__history-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.game__history-meta,
+.game__history-scores {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.game__badge {
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  margin-left: var(--space-2xs);
+  padding: 0 var(--space-2xs);
+}
