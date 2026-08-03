@@ -1,0 +1,97 @@
+/* Chronomètre de manche, sous la grille.
+   Animations sur transform / opacity uniquement (cf. CLAUDE.md). */
+
+.timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.timer__value {
+  font-size: var(--text-timer);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+}
+
+/* L'alerte ne repose jamais sur la seule animation : la couleur et le libellé
+   la portent aussi, pour rester lisible sous `prefers-reduced-motion`. */
+.timer[data-alerting='true'] .timer__value {
+  color: var(--color-accent);
+  animation: timer-pulse 1s var(--ease-out-expo) infinite;
+}
+
+.timer[data-finished='true'] .timer__value {
+  color: var(--color-warning-text);
+}
+
+@keyframes timer-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.75;
+  }
+}
+
+.timer__note {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+}
+
+.timer[data-finished='true'] .timer__note {
+  border-radius: var(--radius-sm);
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  padding: var(--space-2xs) var(--space-xs);
+}
+
+.timer__actions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.timer__button {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  min-height: 2.75rem;
+  padding: var(--space-2xs) var(--space-md);
+  transition:
+    background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.timer__button:hover {
+  background-color: var(--color-surface);
+}
+
+.timer__button:active {
+  transform: translateY(1px);
+}
+
+.timer__button--go {
+  background-color: var(--color-accent);
+  border-color: transparent;
+  color: var(--color-accent-contrast);
+}
+
+.timer__button--go:hover {
+  background-color: var(--color-accent);
+  transform: translateY(-1px);
+}

@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { Board } from './components/board/Board.tsx';
 import { GamePanel } from './components/game/GamePanel.tsx';
 import { RulesPanel } from './components/rules/RulesPanel.tsx';
+import { Timer } from './components/timer/Timer.tsx';
 import type { BoardSize } from './domain/dice.ts';
 import { useGame } from './hooks/useGame.ts';
+import { useTimer } from './hooks/useTimer.ts';
+import { useWakeLock } from './hooks/useWakeLock.ts';
 import './app.css';
 
 const SIZES: readonly BoardSize[] = [4, 5];
@@ -16,6 +19,16 @@ export default function App() {
   const game = useGame();
 
   const inGame = game.currentGame !== null;
+
+  const timer = useTimer({
+    gameId: game.currentGame?.id ?? null,
+    roundId: game.currentRoundId,
+    durationSeconds: game.currentGame?.roundDurationSeconds ?? 0,
+    prefs: game.prefs,
+  });
+
+  // L'écran ne doit pas s'éteindre au milieu d'une manche chronométrée.
+  useWakeLock(game.prefs.keepAwake && timer.running);
 
   const togglePanel = (panel: Exclude<OpenPanel, null>) => (open: boolean) => {
     setOpenPanel(open ? panel : null);
@@ -33,10 +46,13 @@ export default function App() {
         open={openPanel === 'game'}
         onOpenChange={togglePanel('game')}
         roster={game.roster}
+        prefs={game.prefs}
         game={game.currentGame}
         pastGames={game.pastGames}
         onStart={game.startGame}
         onSetScore={game.setScore}
+        onSetDuration={game.setDuration}
+        onSetPrefs={game.setPrefs}
         onFinish={game.finishCurrent}
         onLeave={game.leaveCurrent}
         onResume={game.resumeGame}
@@ -50,6 +66,18 @@ export default function App() {
 
       <main className="app__main">
         <Board board={game.board} />
+
+        {inGame && (
+          <Timer
+            status={timer.status}
+            remainingMs={timer.remainingMs}
+            alerting={timer.alerting}
+            onStart={timer.start}
+            onPause={timer.pause}
+            onResume={timer.resume}
+            onReset={timer.reset}
+          />
+        )}
 
         <div className="app__actions">
           <div className="app__sizes" role="group" aria-label="Format de grille">

@@ -6,6 +6,7 @@ import {
   createGame,
   finishGame,
   reopenGame,
+  setRoundDuration,
   setScore,
   type Game,
   type NewGameInput,
@@ -14,7 +15,15 @@ import {
 import { rememberPlayers, removeKnownPlayer, type KnownPlayer } from '../domain/roster.ts';
 import { createId } from '../lib/ids.ts';
 import { cryptoRandom } from '../lib/random.ts';
-import { readGames, readRoster, writeGames, writeRoster } from '../lib/storage.ts';
+import {
+  readGames,
+  readPrefs,
+  readRoster,
+  writeGames,
+  writePrefs,
+  writeRoster,
+  type Preferences,
+} from '../lib/storage.ts';
 
 /** Écriture différée : évite d'écrire `localStorage` à chaque frappe dans un score. */
 const PERSIST_DELAY_MS = 250;
@@ -25,6 +34,8 @@ type State = {
   readonly currentGameId: string | null;
   /** Grille affichée hors partie — le tirage libre reste possible. */
   readonly freeBoard: Board;
+  /** Réglages de l'appareil : alerte, son, écran allumé. */
+  readonly prefs: Preferences;
 };
 
 /**
@@ -45,7 +56,9 @@ type Action =
   | { readonly type: 'finish-game'; readonly at: string }
   | { readonly type: 'leave-game' }
   | { readonly type: 'resume-game'; readonly gameId: string }
-  | { readonly type: 'forget-player'; readonly playerId: string };
+  | { readonly type: 'forget-player'; readonly playerId: string }
+  | { readonly type: 'set-duration'; readonly seconds: number }
+  | { readonly type: 'set-prefs'; readonly prefs: Preferences };
 
 function currentGameOf(state: State): Game | null {
   return state.games.find((game) => game.id === state.currentGameId) ?? null;
@@ -73,6 +86,8 @@ function reducer(state: State, action: Action): State {
         games: [...state.games, action.game],
         currentGameId: action.game.id,
         roster: rememberPlayers(state.roster, action.game.players, action.at),
+        // La durée retenue est proposée par défaut à la partie suivante.
+        prefs: { ...state.prefs, lastDurationSeconds: action.game.roundDurationSeconds },
       };
 
     case 'new-round':
@@ -104,6 +119,12 @@ function reducer(state: State, action: Action): State {
 
     case 'forget-player':
       return { ...state, roster: removeKnownPlayer(state.roster, action.playerId) };
+
+    case 'set-duration':
+      return mapCurrent(state, (game) => setRoundDuration(game, action.seconds));
+
+    case 'set-prefs':
+      return { ...state, prefs: action.prefs };
   }
 }
 
@@ -113,7 +134,7 @@ function drawFor(size: BoardSize): Board {
 
 function initialState(): State {
   const stored = readGames();
-  return { ...stored, roster: readRoster(), freeBoard: drawFor(4) };
+  return { ...stored, roster: readRoster(), prefs: readPrefs(), freeBoard: drawFor(4) };
 }
 
 function now(): string {
@@ -142,6 +163,11 @@ export function useGame() {
     const timer = setTimeout(() => writeRoster(state.roster), PERSIST_DELAY_MS);
     return () => clearTimeout(timer);
   }, [state.roster]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => writePrefs(state.prefs), PERSIST_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [state.prefs]);
 
   const drawFree = useCallback((size: BoardSize) => {
     dispatch({ type: 'draw-free', board: drawFor(size) });
@@ -190,6 +216,14 @@ export function useGame() {
     dispatch({ type: 'forget-player', playerId });
   }, []);
 
+  const setDuration = useCallback((seconds: number) => {
+    dispatch({ type: 'set-duration', seconds });
+  }, []);
+
+  const setPrefs = useCallback((prefs: Preferences) => {
+    dispatch({ type: 'set-prefs', prefs });
+  }, []);
+
   // La grille affichée est celle de la dernière manche : un rechargement en
   // pleine partie retrouve donc la grille en cours, et non un nouveau tirage.
   const board = currentGame ? (currentGame.rounds.at(-1)?.board ?? state.freeBoard) : state.freeBoard;
@@ -201,14 +235,19 @@ export function useGame() {
 
   return {
     roster: state.roster,
+    prefs: state.prefs,
     currentGame,
     pastGames,
     board,
     size: board.size,
+    /** Identifiant de la manche en cours — le chronomètre s'y raccroche. */
+    currentRoundId: currentGame?.rounds.at(-1)?.id ?? null,
     drawFree,
     newRound,
     startGame,
     setScore: setScoreFor,
+    setDuration,
+    setPrefs,
     finishCurrent,
     leaveCurrent,
     resumeGame,

@@ -9,6 +9,9 @@ import {
   type PlayerId,
 } from '../../domain/game.ts';
 import type { KnownPlayer } from '../../domain/roster.ts';
+import type { Preferences } from '../../lib/storage.ts';
+import { DurationField } from '../timer/DurationField.tsx';
+import { TimerSettings } from '../timer/TimerSettings.tsx';
 import { SidePanel } from '../ui/SidePanel.tsx';
 import { EndConditionField } from './EndConditionField.tsx';
 import { GameHistory } from './GameHistory.tsx';
@@ -22,10 +25,13 @@ type GamePanelProps = {
   readonly open?: boolean | undefined;
   readonly onOpenChange?: ((open: boolean) => void) | undefined;
   readonly roster: readonly KnownPlayer[];
+  readonly prefs: Preferences;
   readonly game: Game | null;
   readonly pastGames: readonly Game[];
   readonly onStart: (input: NewGameInput) => void;
   readonly onSetScore: (roundId: string, playerId: PlayerId, points: number | null) => void;
+  readonly onSetDuration: (seconds: number) => void;
+  readonly onSetPrefs: (prefs: Preferences) => void;
   readonly onFinish: () => void;
   readonly onLeave: () => void;
   readonly onResume: (gameId: string) => void;
@@ -50,10 +56,13 @@ export function GamePanel({
   open,
   onOpenChange,
   roster,
+  prefs,
   game,
   pastGames,
   onStart,
   onSetScore,
+  onSetDuration,
+  onSetPrefs,
   onFinish,
   onLeave,
   onResume,
@@ -63,13 +72,15 @@ export function GamePanel({
   const [size, setSize] = useState<BoardSize>(4);
   const [endCondition, setEndCondition] = useState<EndCondition>({ kind: 'libre' });
   const [setupOpen, setSetupOpen] = useState(false);
+  // Proposée depuis la dernière partie créée sur cet appareil.
+  const [duration, setDuration] = useState(prefs.lastDurationSeconds);
 
   const showSetup = game === null || setupOpen;
   const progress = game ? endProgress(game) : null;
 
   const start = () => {
     if (players.length === 0) return;
-    onStart({ size, players, endCondition });
+    onStart({ size, players, endCondition, roundDurationSeconds: duration });
     setPlayers([]);
     setSetupOpen(false);
   };
@@ -100,6 +111,8 @@ export function GamePanel({
           )}
 
           <ScoreTable game={game} onSetScore={onSetScore} />
+
+          <DurationField value={game.roundDurationSeconds} onChange={onSetDuration} />
 
           <div className="game__row">
             {!progress?.reached && (
@@ -160,6 +173,8 @@ export function GamePanel({
 
             <EndConditionField value={endCondition} onChange={setEndCondition} />
 
+            <DurationField value={duration} onChange={setDuration} />
+
             <button
               type="submit"
               className="game__button game__button--accent"
@@ -173,6 +188,13 @@ export function GamePanel({
           </form>
         </section>
       )}
+
+      <section className="game__section" aria-labelledby="game-timer">
+        <h3 className="game__subheading" id="game-timer">
+          Chronomètre
+        </h3>
+        <TimerSettings prefs={prefs} onChange={onSetPrefs} />
+      </section>
 
       <section className="game__section" aria-labelledby="game-history">
         <h3 className="game__subheading" id="game-history">

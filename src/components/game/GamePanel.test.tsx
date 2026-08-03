@@ -7,6 +7,7 @@ import { drawBoard } from '../../domain/draw.ts';
 import { addRound, createGame, setScore, type Game } from '../../domain/game.ts';
 import type { KnownPlayer } from '../../domain/roster.ts';
 import { createSeededRandom } from '../../lib/random.ts';
+import { DEFAULT_PREFERENCES } from '../../lib/storage.ts';
 import { GamePanel } from './GamePanel.tsx';
 
 const T0 = '2026-01-01T10:00:00.000Z';
@@ -25,6 +26,7 @@ function makeGame(rounds = 1): Game {
         { id: 'p-bob', name: 'Bob' },
       ],
       endCondition: { kind: 'manches', rounds: 2 },
+      roundDurationSeconds: 180,
     },
     'g-1',
     T0,
@@ -39,10 +41,13 @@ function renderPanel(overrides: Partial<Parameters<typeof GamePanel>[0]> = {}) {
   const props = {
     open: true,
     roster: ROSTER,
+    prefs: DEFAULT_PREFERENCES,
     game: null,
     pastGames: [],
     onStart: vi.fn(),
     onSetScore: vi.fn(),
+    onSetDuration: vi.fn(),
+    onSetPrefs: vi.fn(),
     onFinish: vi.fn(),
     onLeave: vi.fn(),
     onResume: vi.fn(),
@@ -64,12 +69,15 @@ function StatefulPanel({ initial }: { readonly initial: Game }) {
     <GamePanel
       open
       roster={[]}
+      prefs={DEFAULT_PREFERENCES}
       game={game}
       pastGames={[]}
       onStart={vi.fn()}
       onSetScore={(roundId, playerId, points) =>
         setGame((current) => setScore(current, roundId, playerId, points))
       }
+      onSetDuration={vi.fn()}
+      onSetPrefs={vi.fn()}
       onFinish={vi.fn()}
       onLeave={vi.fn()}
       onResume={vi.fn()}
@@ -122,6 +130,7 @@ describe('GamePanel — démarrage d’une partie', () => {
         { id: 'p-bob', name: 'Bob' },
       ],
       endCondition: { kind: 'libre' },
+      roundDurationSeconds: DEFAULT_PREFERENCES.lastDurationSeconds,
     });
   });
 
@@ -196,6 +205,45 @@ describe('GamePanel — démarrage d’une partie', () => {
     expect(props.onStart).toHaveBeenCalledWith(
       expect.objectContaining({ endCondition: { kind: 'score', target: 200 } }),
     );
+  });
+
+  it('transmet la durée de manche réglée', async () => {
+    const user = userEvent.setup();
+    const props = renderPanel();
+
+    await user.click(screen.getByRole('button', { name: 'Alice' }));
+    const duration = screen.getByRole('spinbutton', { name: /durée d.une manche/i });
+    await user.clear(duration);
+    await user.type(duration, '240');
+    await user.click(screen.getByRole('button', { name: /démarrer la partie/i }));
+
+    expect(props.onStart).toHaveBeenCalledWith(
+      expect.objectContaining({ roundDurationSeconds: 240 }),
+    );
+  });
+
+  // Un `step` supérieur à 1 rendrait les valeurs intermédiaires invalides au
+  // sens HTML, et le navigateur bloquerait la soumission sans rien expliquer.
+  it('accepte une durée quelconque et démarre bien la partie', async () => {
+    const user = userEvent.setup();
+    const props = renderPanel();
+
+    await user.click(screen.getByRole('button', { name: 'Alice' }));
+    const duration = screen.getByRole('spinbutton', { name: /durée d.une manche/i });
+    await user.clear(duration);
+    await user.type(duration, '35');
+    expect(duration).toBeValid();
+
+    await user.click(screen.getByRole('button', { name: /démarrer la partie/i }));
+    expect(props.onStart).toHaveBeenCalledWith(
+      expect.objectContaining({ roundDurationSeconds: 35 }),
+    );
+  });
+
+  it('propose par défaut la durée de la dernière partie créée', () => {
+    renderPanel({ prefs: { ...DEFAULT_PREFERENCES, lastDurationSeconds: 300 } });
+
+    expect(screen.getByRole('spinbutton', { name: /durée d.une manche/i })).toHaveValue(300);
   });
 
   it('transmet le format 5×5', async () => {
@@ -273,6 +321,49 @@ describe('GamePanel — partie en cours', () => {
 
     expect(screen.getByText('Manche 1 / 2')).toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+});
+
+describe('GamePanel — réglages du chronomètre', () => {
+  it('remonte un nouveau seuil d’alerte', async () => {
+    const user = userEvent.setup();
+    const props = renderPanel();
+
+    const alert = screen.getByRole('spinbutton', { name: /alerte avant la fin/i });
+    await user.clear(alert);
+    await user.type(alert, '10');
+
+    expect(props.onSetPrefs).toHaveBeenLastCalledWith(
+      expect.objectContaining({ alertSeconds: 10 }),
+    );
+  });
+
+  it('dit clairement qu’un seuil à zéro désactive l’alerte', () => {
+    renderPanel({ prefs: { ...DEFAULT_PREFERENCES, alertSeconds: 0 } });
+
+    expect(screen.getByText(/alerte désactivée/i)).toBeInTheDocument();
+  });
+
+  it('bascule le bip sonore', async () => {
+    const user = userEvent.setup();
+    const props = renderPanel();
+
+    await user.click(screen.getByRole('checkbox', { name: /bip sonore/i }));
+
+    expect(props.onSetPrefs).toHaveBeenLastCalledWith(
+      expect.objectContaining({ soundEnabled: false }),
+    );
+  });
+
+  it('remonte la durée changée en cours de partie', async () => {
+    const user = userEvent.setup();
+    const props = renderPanel({ game: makeGame(1) });
+
+    const duration = screen.getByRole('spinbutton', { name: /durée d.une manche/i });
+    await user.clear(duration);
+    await user.type(duration, '120');
+
+    expect(props.onSetDuration).toHaveBeenLastCalledWith(120);
   });
 });
 
