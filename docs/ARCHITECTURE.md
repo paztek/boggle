@@ -473,5 +473,5 @@ chaud et donnerait des résultats déroutants.
 | --- | --- |
 | Vérification d'un mot litigieux par lien sortant | Envisagée, hors du périmètre initial |
 | Conservation de l'historique des parties terminées | **Tranchée** — les 20 dernières parties sont conservées et peuvent être reprises |
-| Ajout d'un joueur en cours de partie | Supporté par le modèle (`addPlayer`), pas encore exposé dans l'interface |
+| Ajout d'un joueur en cours de partie | **Tranchée** — hors périmètre ; `addPlayer` reste disponible côté domaine, avec ses tests, si le besoin revient |
 | Licence du dépôt | À définir |

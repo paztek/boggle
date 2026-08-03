@@ -93,8 +93,5 @@ versionnée et validée, l'affichage de la grille, le chronomètre de manche ave
 sonore, les deux panneaux latéraux (barème à gauche, partie et scores à droite), l'installation en
 PWA avec fonctionnement hors ligne, et le workflow de vérification et déploiement GitHub Pages.
 
-Reste à faire :
-
-- Exposer l'ajout d'un joueur en cours de partie — `addPlayer` existe déjà côté domaine.
-
-Voir la section « Décisions ouvertes » de [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Le périmètre décrit dans [docs/RULES.md](docs/RULES.md) est couvert. Voir la section
+« Décisions ouvertes » de [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
