@@ -266,21 +266,19 @@ au cas où un futur jeu réintroduirait le digramme. Résultat :
 **2,3 Ko**, inliné en data URI par Vite (sous le seuil de 4 Ko), donc **aucune requête réseau
 supplémentaire** et pas de FOUT.
 
-Deux variantes de caractères OpenType sont activées via `--font-tile-features` :
+Les lettres sont rendues dans le **dessin par défaut** de la police : aucune variante de caractère
+OpenType n'est activée.
 
-| Variante | Effet | Pourquoi |
-| --- | --- | --- |
-| `cv08` | `I` à empattements | Sans elle, un `I` pivoté à 90° se réduit à un trait horizontal illisible |
-| `cv10` | `G` à éperon | Sépare nettement le `G` du `O` et du `C` |
+Deux l'ont été un temps — `cv08` (`I` à empattements) et `cv10` (`G` à éperon) — pour lever
+l'ambiguïté d'un `I` pivoté à 90°, qui se réduit alors à un trait horizontal. Elles ont été
+retirées : le dessin par défaut est jugé préférable. Si la lisibilité du `I` en rotation pose
+problème en séance, la piste à reprendre est le **soulignement** déjà en place pour `M`/`W` et
+`N`/`Z` (`board__face--ambiguous`), qui relève de la convention du jeu physique plutôt que du choix
+typographique.
 
-> **Ne pas remplacer par `@fontsource/inter`.** Ce paquet retire les variantes de caractères : son
-> fichier ne contient que `calt, ccmp, dnom, frac, locl, numr, pnum, tnum`. `cv08` y est absent, et
-> le `I` redevient un bâton. La police est donc générée depuis la distribution officielle par
-> [`scripts/build-font-subset.sh`](../scripts/build-font-subset.sh), qui préserve explicitement les
-> variantes (`--layout-features+=cv08,cv10`).
-
-Le fichier est versionné dans `src/assets/fonts/` : le build ne dépend pas du réseau, seul le script
-de régénération en a besoin. Inter est sous licence SIL Open Font 1.1, dont le texte accompagne le
+Le fichier est généré par [`scripts/build-font-subset.sh`](../scripts/build-font-subset.sh) et
+versionné dans `src/assets/fonts/` : le build ne dépend pas du réseau, seul le script de
+régénération en a besoin. Inter est sous licence SIL Open Font 1.1, dont le texte accompagne le
 fichier.
 
 ## 9. Tests
