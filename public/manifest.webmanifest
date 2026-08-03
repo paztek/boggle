@@ -1,0 +1,46 @@
+{
+  "id": "./",
+  "name": "Boggle — Tirage & scores",
+  "short_name": "Boggle",
+  "description": "Tirage de grilles de Boggle 4×4 et 5×5, chronomètre et feuille de scores. Fonctionne hors ligne, aucune donnée ne quitte l'appareil.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f1e9",
+  "theme_color": "#f5f1e9",
+  "categories": ["games", "utilities"],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-maskable-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icon-maskable-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ]
+}
