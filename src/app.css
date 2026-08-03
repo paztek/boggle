@@ -4,7 +4,9 @@
   align-items: center;
   gap: var(--space-lg);
   min-height: 100dvh;
-  padding: var(--space-xl) var(--space-md);
+  /* Les deux boutons de panneau sont fixés en haut : on leur réserve leur
+     hauteur pour que le titre ne passe jamais dessous. */
+  padding: calc(var(--space-xl) + 2.75rem) var(--space-md) var(--space-xl);
 }
 
 .app__header {
@@ -31,6 +33,11 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-lg);
+}
+
+.app__status {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 .app__actions {
@@ -71,6 +78,16 @@
 .app__size:hover {
   background-color: var(--color-surface);
   color: var(--color-text);
+}
+
+.app__size:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.app__size:disabled:hover {
+  background-color: transparent;
+  color: var(--color-text-muted);
 }
 
 .app__size[aria-pressed='true'] {
