@@ -131,21 +131,17 @@ Les faces des dés vivent dans `src/domain/dice.ts`, écrites **face par face** 
 
 ```ts
 export const DICE_4X4: readonly Die[] = [
-  ['A', 'A', 'E', 'E', 'G', 'N'],
+  ['E', 'T', 'U', 'K', 'N', 'O'],
   // … 16 dés au total
 ];
 ```
 
-Les faces sont des tableaux explicites et non des chaînes à découper : `Qu` est une face unique,
+Les faces sont des tableaux explicites et non des chaînes à découper : `Qu` reste une face unique,
 ce qu'un découpage caractère par caractère ne saurait pas exprimer.
 
-> **⚠️ Jeu de dés provisoire.** Les faces actuellement présentes sont celles du Boggle **anglais**
-> (Hasbro 1983 pour le 4×4, Big Boggle pour le 5×5). Elles ne servent qu'à rendre l'application
-> fonctionnelle en attendant la liste officielle des dés **français**, qui les remplacera
-> intégralement.
->
-> Tant que la constante `DICE_ARE_PROVISIONAL` vaut `true`, l'interface affiche un bandeau
-> d'avertissement. Ne pas le retirer avant la substitution.
+Ce sont désormais les **dés français** : 16 dés pour le 4×4, 25 pour le 5×5. Le jeu français porte
+un `Q` **autonome** — aucune face `Qu`. Le digramme reste néanmoins pris en charge par le type
+`Face` et par la police (§ 8.1), au cas où un futur jeu le réintroduirait.
 
 Ces faces sont la **seule** source du tirage : aucune table de fréquence de lettres ne doit être
 introduite en parallèle, sous peine de faire diverger le tirage du jeu physique.
@@ -212,7 +208,8 @@ chargent une police, parce que la lisibilité y est fonctionnelle et non décora
 sont grandes, lues à distance et **pivotées aléatoirement**.
 
 La police retenue est **InterDisplay Bold** (variante optique d'Inter destinée aux grandes tailles),
-sous-catégorisée aux 27 caractères réellement affichés : `A`–`Z` et le `u` de `Qu`. Résultat :
+sous-catégorisée à `A`–`Z` plus le `u` de `Qu` — conservé bien que le jeu français n'en use pas,
+au cas où un futur jeu réintroduirait le digramme. Résultat :
 **2,3 Ko**, inliné en data URI par Vite (sous le seuil de 4 Ko), donc **aucune requête réseau
 supplémentaire** et pas de FOUT.
 
@@ -282,7 +279,6 @@ Le site étant statique et sans routeur, aucune réécriture d'URL n'est nécess
 
 | Sujet | État |
 | --- | --- |
-| Faces exactes des dés FR 4×4 et 5×5 | En attente des données — jeu anglais utilisé provisoirement, cf. § 5 |
 | Vérification d'un mot litigieux par lien sortant | Envisagée, hors du périmètre initial |
 | Conservation de l'historique des parties terminées | Non tranchée — seule la partie en cours est persistée aujourd'hui |
 | Licence du dépôt | À définir |

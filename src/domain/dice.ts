@@ -15,68 +15,62 @@ export type Die = readonly [Face, Face, Face, Face, Face, Face];
 export type BoardSize = 4 | 5;
 
 /* -------------------------------------------------------------------------
- * ⚠️  JEU DE DÉS PROVISOIRE
+ * Jeux de dés FRANÇAIS.
  *
- * Les faces ci-dessous sont celles du Boggle ANGLAIS (Hasbro 1983 pour le 4×4,
- * Big Boggle pour le 5×5). Elles ne servent qu'à rendre l'application
- * fonctionnelle en attendant la liste officielle des dés FRANÇAIS.
+ * Les 16 dés du 4×4 et les 25 dés du 5×5 ci-dessous sont la SEULE source du
+ * tirage. Une seule face par ligne, exactement six par dé.
  *
- * À remplacer intégralement dès réception des 16 et 25 dés français.
- * Tant que `DICE_ARE_PROVISIONAL` vaut `true`, l'interface affiche un
- * avertissement visible : ne pas le retirer avant la substitution.
- *
- * Les faces sont écrites une par une, et non sous forme de chaîne à découper :
- * « Qu » est une face unique, ce qu'un découpage caractère par caractère ne
- * saurait pas exprimer.
+ * Contrairement au Boggle anglais, le jeu français porte un `Q` autonome :
+ * aucune face « Qu ». Le digramme reste néanmoins un cas géré par le type
+ * `Face` et par la police (cf. § 8.1 de docs/ARCHITECTURE.md), au cas où un
+ * futur jeu le réintroduirait.
  * ---------------------------------------------------------------------- */
 
-export const DICE_ARE_PROVISIONAL = true;
-
 export const DICE_4X4: readonly Die[] = [
-  ['A', 'A', 'E', 'E', 'G', 'N'],
-  ['A', 'B', 'B', 'J', 'O', 'O'],
-  ['A', 'C', 'H', 'O', 'P', 'S'],
-  ['A', 'F', 'F', 'K', 'P', 'S'],
-  ['A', 'O', 'O', 'T', 'T', 'W'],
-  ['C', 'I', 'M', 'O', 'T', 'U'],
-  ['D', 'E', 'I', 'L', 'R', 'X'],
-  ['D', 'E', 'L', 'R', 'V', 'Y'],
-  ['D', 'I', 'S', 'T', 'T', 'Y'],
-  ['E', 'E', 'G', 'H', 'N', 'W'],
-  ['E', 'E', 'I', 'N', 'S', 'U'],
-  ['E', 'H', 'R', 'T', 'V', 'W'],
-  ['E', 'I', 'O', 'S', 'S', 'T'],
-  ['E', 'L', 'R', 'T', 'T', 'Y'],
-  ['H', 'I', 'M', 'N', 'Qu', 'U'],
-  ['H', 'L', 'N', 'N', 'R', 'Z'],
+  ['E', 'T', 'U', 'K', 'N', 'O'],
+  ['E', 'V', 'G', 'T', 'I', 'N'],
+  ['D', 'E', 'C', 'A', 'M', 'P'],
+  ['I', 'E', 'L', 'R', 'U', 'W'],
+  ['E', 'H', 'I', 'F', 'S', 'E'],
+  ['R', 'E', 'C', 'A', 'L', 'S'],
+  ['E', 'N', 'T', 'D', 'O', 'S'],
+  ['O', 'F', 'X', 'R', 'I', 'A'],
+  ['N', 'A', 'V', 'E', 'D', 'Z'],
+  ['E', 'I', 'O', 'A', 'T', 'A'],
+  ['G', 'L', 'E', 'N', 'Y', 'U'],
+  ['B', 'M', 'A', 'Q', 'J', 'O'],
+  ['T', 'L', 'I', 'B', 'R', 'A'],
+  ['S', 'P', 'U', 'L', 'T', 'E'],
+  ['A', 'I', 'M', 'S', 'O', 'R'],
+  ['E', 'N', 'H', 'R', 'I', 'S'],
 ];
 
 export const DICE_5X5: readonly Die[] = [
-  ['A', 'A', 'A', 'F', 'R', 'S'],
-  ['A', 'A', 'E', 'E', 'E', 'E'],
-  ['A', 'A', 'F', 'I', 'R', 'S'],
-  ['A', 'D', 'E', 'N', 'N', 'N'],
-  ['A', 'E', 'E', 'E', 'E', 'M'],
-  ['A', 'E', 'E', 'G', 'M', 'U'],
-  ['A', 'E', 'G', 'M', 'N', 'N'],
-  ['A', 'F', 'I', 'R', 'S', 'Y'],
-  ['B', 'J', 'K', 'Qu', 'X', 'Z'],
-  ['C', 'C', 'N', 'S', 'T', 'W'],
-  ['C', 'E', 'I', 'I', 'L', 'T'],
-  ['C', 'E', 'I', 'L', 'P', 'T'],
-  ['C', 'E', 'I', 'P', 'S', 'T'],
-  ['D', 'D', 'H', 'N', 'O', 'T'],
-  ['D', 'H', 'H', 'L', 'O', 'R'],
-  ['D', 'H', 'L', 'N', 'O', 'R'],
-  ['D', 'D', 'L', 'N', 'O', 'R'],
-  ['E', 'I', 'I', 'I', 'T', 'T'],
-  ['E', 'M', 'O', 'T', 'T', 'T'],
-  ['E', 'N', 'S', 'S', 'S', 'U'],
-  ['F', 'I', 'P', 'R', 'S', 'Y'],
-  ['G', 'O', 'R', 'R', 'V', 'W'],
-  ['H', 'I', 'P', 'R', 'R', 'Y'],
-  ['N', 'O', 'O', 'T', 'U', 'W'],
-  ['O', 'O', 'O', 'T', 'T', 'U'],
+  ['M', 'D', 'N', 'S', 'N', 'H'],
+  ['G', 'F', 'S', 'T', 'E', 'Y'],
+  ['L', 'M', 'T', 'R', 'X', 'S'],
+  ['T', 'T', 'R', 'S', 'C', 'H'],
+  ['B', 'M', 'L', 'N', 'D', 'L'],
+  ['T', 'M', 'R', 'D', 'B', 'T'],
+  ['E', 'I', 'U', 'E', 'A', 'O'],
+  ['R', 'L', 'X', 'S', 'S', 'B'],
+  ['N', 'A', 'A', 'T', 'E', 'Q'],
+  ['T', 'C', 'J', 'F', 'S', 'H'],
+  ['I', 'E', 'E', 'A', 'O', 'A'],
+  ['N', 'D', 'H', 'S', 'N', 'M'],
+  ['I', 'A', 'A', 'I', 'E', 'O'],
+  ['O', 'E', 'U', 'E', 'I', 'A'],
+  ['L', 'C', 'P', 'R', 'J', 'S'],
+  ['D', 'S', 'T', 'L', 'S', 'M'],
+  ['N', 'K', 'L', 'P', 'F', 'N'],
+  ['D', 'W', 'R', 'N', 'L', 'P'],
+  ['R', 'Z', 'N', 'N', 'T', 'Q'],
+  ['R', 'G', 'L', 'R', 'V', 'F'],
+  ['R', 'V', 'C', 'G', 'R', 'T'],
+  ['I', 'I', 'O', 'E', 'A', 'E'],
+  ['E', 'U', 'I', 'A', 'E', 'O'],
+  ['U', 'I', 'A', 'E', 'O', 'A'],
+  ['N', 'S', 'E', 'V', 'A', 'E'],
 ];
 
 /** Jeu de dés correspondant à un format de grille. */

@@ -35,7 +35,8 @@ ailleurs.
 
 ### Cas particuliers d'affichage
 
-- La face **`Qu`** compte pour deux lettres dans un mot, et s'affiche comme une seule tuile.
+- La face **`Qu`**, lorsqu'un jeu la comporte, compte pour deux lettres dans un mot et s'affiche
+  comme une seule tuile. Le jeu de dés français actuel n'en contient pas : le `Q` y est autonome.
 - Les faces `M` et `W`, `N` et `Z`, `6` et `9` étant ambiguës selon l'orientation, l'affichage
   reprend la convention du jeu physique : un **point souligné** (ou un soulignement) lève
   l'ambiguïté.
