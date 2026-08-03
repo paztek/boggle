@@ -57,6 +57,7 @@ type Action =
   | { readonly type: 'leave-game' }
   | { readonly type: 'resume-game'; readonly gameId: string }
   | { readonly type: 'forget-player'; readonly playerId: string }
+  | { readonly type: 'delete-game'; readonly gameId: string }
   | { readonly type: 'set-duration'; readonly seconds: number }
   | { readonly type: 'set-prefs'; readonly prefs: Preferences };
 
@@ -119,6 +120,15 @@ function reducer(state: State, action: Action): State {
 
     case 'forget-player':
       return { ...state, roster: removeKnownPlayer(state.roster, action.playerId) };
+
+    case 'delete-game':
+      return {
+        ...state,
+        games: state.games.filter((game) => game.id !== action.gameId),
+        // Par sécurité : si la partie courante venait à être supprimée, mieux
+        // vaut retomber hors partie qu'exposer un identifiant pointant dans le vide.
+        currentGameId: state.currentGameId === action.gameId ? null : state.currentGameId,
+      };
 
     case 'set-duration':
       return mapCurrent(state, (game) => setRoundDuration(game, action.seconds));
@@ -216,6 +226,10 @@ export function useGame() {
     dispatch({ type: 'forget-player', playerId });
   }, []);
 
+  const deleteGame = useCallback((gameId: string) => {
+    dispatch({ type: 'delete-game', gameId });
+  }, []);
+
   const setDuration = useCallback((seconds: number) => {
     dispatch({ type: 'set-duration', seconds });
   }, []);
@@ -251,6 +265,7 @@ export function useGame() {
     finishCurrent,
     leaveCurrent,
     resumeGame,
+    deleteGame,
     forgetPlayer,
   };
 }

@@ -300,6 +300,20 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-xs) var(--space-sm);
+  flex-wrap: wrap;
+}
+
+/* La confirmation de suppression se signale aussi par la bordure : le seul
+   changement de libellé passerait inaperçu dans une liste. */
+.game__history-item[data-confirming='true'] {
+  border-color: var(--color-accent);
+}
+
+.game__history-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2xs);
 }
 
 .game__history-info {

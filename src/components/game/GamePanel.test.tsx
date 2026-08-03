@@ -51,6 +51,7 @@ function renderPanel(overrides: Partial<Parameters<typeof GamePanel>[0]> = {}) {
     onFinish: vi.fn(),
     onLeave: vi.fn(),
     onResume: vi.fn(),
+    onDeleteGame: vi.fn(),
     onForgetPlayer: vi.fn(),
     ...overrides,
   };
@@ -81,6 +82,7 @@ function StatefulPanel({ initial }: { readonly initial: Game }) {
       onFinish={vi.fn()}
       onLeave={vi.fn()}
       onResume={vi.fn()}
+      onDeleteGame={vi.fn()}
       onForgetPlayer={vi.fn()}
     />
   );
@@ -382,5 +384,40 @@ describe('GamePanel — parties passées', () => {
     renderPanel();
 
     expect(screen.getByText(/aucune partie enregistrée/i)).toBeInTheDocument();
+  });
+
+  // La suppression est définitive : rien n'est envoyé nulle part, donc rien à
+  // restaurer. Et le bouton voisine avec « Reprendre ».
+  it('demande confirmation avant de supprimer', async () => {
+    const user = userEvent.setup();
+    const props = renderPanel({ pastGames: [makeGame(2)] });
+
+    await user.click(screen.getByRole('button', { name: /^supprimer la partie/i }));
+
+    expect(props.onDeleteGame).not.toHaveBeenCalled();
+    expect(screen.getByText(/supprimer définitivement/i)).toBeInTheDocument();
+    // Reprendre par mégarde pendant la confirmation n'est plus possible.
+    expect(screen.queryByRole('button', { name: /reprendre/i })).not.toBeInTheDocument();
+  });
+
+  it('supprime après confirmation', async () => {
+    const user = userEvent.setup();
+    const props = renderPanel({ pastGames: [makeGame(2)] });
+
+    await user.click(screen.getByRole('button', { name: /^supprimer la partie/i }));
+    await user.click(screen.getByRole('button', { name: 'Supprimer' }));
+
+    expect(props.onDeleteGame).toHaveBeenCalledWith('g-1');
+  });
+
+  it('renonce à supprimer sur « Annuler »', async () => {
+    const user = userEvent.setup();
+    const props = renderPanel({ pastGames: [makeGame(2)] });
+
+    await user.click(screen.getByRole('button', { name: /^supprimer la partie/i }));
+    await user.click(screen.getByRole('button', { name: /annuler/i }));
+
+    expect(props.onDeleteGame).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /reprendre/i })).toBeInTheDocument();
   });
 });

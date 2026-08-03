@@ -56,6 +56,7 @@ export default function App() {
         onFinish={game.finishCurrent}
         onLeave={game.leaveCurrent}
         onResume={game.resumeGame}
+        onDeleteGame={game.deleteGame}
         onForgetPlayer={game.forgetPlayer}
       />
 

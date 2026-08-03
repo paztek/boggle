@@ -35,6 +35,7 @@ type GamePanelProps = {
   readonly onFinish: () => void;
   readonly onLeave: () => void;
   readonly onResume: (gameId: string) => void;
+  readonly onDeleteGame: (gameId: string) => void;
   readonly onForgetPlayer: (playerId: string) => void;
 };
 
@@ -66,6 +67,7 @@ export function GamePanel({
   onFinish,
   onLeave,
   onResume,
+  onDeleteGame,
   onForgetPlayer,
 }: GamePanelProps) {
   const [players, setPlayers] = useState<readonly Player[]>([]);
@@ -200,7 +202,7 @@ export function GamePanel({
         <h3 className="game__subheading" id="game-history">
           Parties passées
         </h3>
-        <GameHistory games={pastGames} onResume={onResume} />
+        <GameHistory games={pastGames} onResume={onResume} onDelete={onDeleteGame} />
       </section>
     </SidePanel>
   );
