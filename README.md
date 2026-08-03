@@ -77,4 +77,9 @@ donc pas les assets.
 
 ## Licence
 
-À définir.
+[MIT](LICENSE) — libre de reprise, de modification et de redistribution, y compris commerciale, à
+la seule condition de **conserver la mention de copyright et le texte de la licence** dans les
+copies.
+
+La police Inter, incluse dans `src/assets/fonts/`, garde sa propre licence
+([SIL Open Font License 1.1](src/assets/fonts/Inter-LICENSE.txt)).

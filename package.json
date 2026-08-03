@@ -4,6 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Tirage de grilles de Boggle (4x4 / 5x5) et feuille de scores — application web statique",
+  "license": "MIT",
+  "author": "Matthieu Balmes",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
