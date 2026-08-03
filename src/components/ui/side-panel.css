@@ -68,10 +68,12 @@
   z-index: var(--z-panel);
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
   width: var(--panel-width);
   height: 100dvh;
-  padding: var(--space-lg);
+  /* Aucun rembourrage ici : il appartient à la tête et au corps, sans quoi
+     la tête collante laisserait défiler le contenu dans la marge au-dessus
+     d'elle. */
+  padding: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   background-color: var(--color-bg-elevated);
@@ -93,11 +95,21 @@
   transform: translateX(0);
 }
 
+/* Titre et bouton de fermeture restent accessibles quel que soit le
+   défilement : les panneaux sont longs, et devoir remonter pour refermer est
+   pénible sur mobile, où le voile de fond est souvent hors de portée du pouce. */
 .side-panel__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  /* Opaque, sinon le contenu défilerait en transparence dessous. */
+  background-color: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .side-panel__heading {
@@ -130,4 +142,5 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+  padding: var(--space-lg);
 }
