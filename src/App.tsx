@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Board } from './components/board/Board.tsx';
 import { RulesPanel } from './components/rules/RulesPanel.tsx';
-import { DICE_ARE_PROVISIONAL, diceFor, type BoardSize } from './domain/dice.ts';
+import { diceFor, type BoardSize } from './domain/dice.ts';
 import { drawBoard, type Board as BoardModel } from './domain/draw.ts';
 import { cryptoRandom } from './lib/random.ts';
 import './app.css';
@@ -25,13 +25,6 @@ export default function App() {
         <h1 className="app__title">Boggle</h1>
         <p className="app__subtitle">Tirage de grilles &amp; feuille de scores</p>
       </header>
-
-      {DICE_ARE_PROVISIONAL && (
-        <p className="app__warning" role="status">
-          <strong>Jeu de dés provisoire.</strong> Les faces utilisées sont celles du Boggle
-          anglais, en attendant l&apos;intégration des dés français.
-        </p>
-      )}
 
       <main className="app__main">
         <Board board={board} />

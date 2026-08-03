@@ -16,12 +16,16 @@ describe('jeux de dés', () => {
     }
   });
 
-  it('conserve « Qu » comme une face unique et non deux lettres', () => {
-    const facesWithQ = [...DICE_4X4, ...DICE_5X5].flat().filter((face) => face.startsWith('Q'));
-    expect(facesWithQ.length).toBeGreaterThan(0);
-    for (const face of facesWithQ) {
-      expect(face).toBe('Qu');
+  it('représente chaque face du jeu français par une seule lettre', () => {
+    for (const face of [...DICE_4X4, ...DICE_5X5].flat()) {
+      expect(face).toMatch(/^[A-Z]$/);
     }
+  });
+
+  it('porte le Q comme face autonome, sans digramme « Qu »', () => {
+    const faces = [...DICE_4X4, ...DICE_5X5].flat();
+    expect(faces).toContain('Q');
+    expect(faces).not.toContain('Qu');
   });
 
   it('associe chaque format à son jeu de dés', () => {

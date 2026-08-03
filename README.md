@@ -11,10 +11,6 @@ L'application **ne saisit pas les mots** et **ne calcule pas les points** : elle
 le chrono, un rappel du barème, et additionne les totaux saisis manuellement à la fin de chaque
 manche.
 
-> **⚠️ Jeu de dés provisoire.** Les faces utilisées aujourd'hui sont celles du Boggle *anglais*, le
-> temps que la liste officielle des dés français soit intégrée. L'application affiche un bandeau
-> tant que c'est le cas.
-
 ## Fonctionnalités
 
 Disponibles :

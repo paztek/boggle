@@ -86,8 +86,6 @@ avec ses tests, l'affichage de la grille, et le workflow de vérification et dé
 
 Restent à faire :
 
-- **Remplacer le jeu de dés provisoire** — les faces actuelles sont celles du Boggle anglais, en
-  attente de la liste française. Retirer `DICE_ARE_PROVISIONAL` et son bandeau après substitution.
 - Réducteur de partie (`src/domain/game.ts`) : joueurs, manches, scores saisis, totaux dérivés.
 - Persistance `localStorage` versionnée et validée (`src/lib/storage.ts`).
 - Écrans Setup et Scores, chronomètre de manche.
