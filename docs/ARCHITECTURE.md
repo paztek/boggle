@@ -41,18 +41,21 @@ Aucune librairie de gestion d'état externe : l'état tient dans un `useReducer`
 │   │   ├── board/            # Grille, tuiles, orientation des lettres
 │   │   ├── game/             # Panneau droit : joueurs, fin de partie, scores, historique
 │   │   ├── rules/            # Panneau gauche : barème & rappel des règles
-│   │   ├── timer/            # Chronomètre de manche
+│   │   ├── timer/            # Chronomètre, durée et réglages d'alerte
 │   │   └── ui/               # SidePanel (coquille commune aux deux panneaux)
 │   ├── domain/
 │   │   ├── dice.ts           # Jeux de dés 4x4 et 5x5
 │   │   ├── draw.ts           # Tirage : mélange, lancer, orientation
 │   │   ├── scoring.ts        # Barème (données d'affichage uniquement)
 │   │   ├── game.ts           # Types Game / Round / Player, transitions, dérivations
-│   │   └── roster.ts         # Répertoire des joueurs déjà rencontrés
+│   │   ├── roster.ts         # Répertoire des joueurs déjà rencontrés
+│   │   └── timer.ts          # État du chronomètre, échéance absolue
 │   ├── hooks/
 │   │   ├── useGame.ts        # État applicatif + persistance différée
-│   │   └── useCountdown.ts
+│   │   ├── useTimer.ts       # Chronomètre de la manche courante
+│   │   └── useWakeLock.ts    # Maintien de l'écran allumé
 │   ├── lib/
+│   │   ├── audio.ts          # Bips synthétisés (WebAudio)
 │   │   ├── ids.ts            # Identifiants locaux
 │   │   ├── random.ts         # Abstraction du générateur aléatoire
 │   │   └── storage.ts        # Lecture/écriture localStorage, versionnage
@@ -122,9 +125,18 @@ type Game = {
   rounds: readonly Round[];
   endCondition: EndCondition;
   status: 'en-cours' | 'terminee';
+  /** Durée d'une manche en secondes — règle de jeu, donc propre à la partie. */
+  roundDurationSeconds: number;
   createdAt: string;           // ISO 8601
   finishedAt: string | null;   // ISO 8601
 };
+
+/** État du chronomètre : une ÉCHÉANCE, jamais un compteur qui décrémente. */
+type TimerState =
+  | { status: 'arrete' }
+  | { status: 'en-cours'; endsAt: number }      // epoch ms
+  | { status: 'suspendu'; remainingMs: number }
+  | { status: 'termine' };
 
 /** Joueur du répertoire local, réutilisable d'une partie à l'autre. */
 type KnownPlayer = {
@@ -202,6 +214,20 @@ qui rend le tirage testable — aucun appel direct à `Math.random()` dans `doma
   | --- | --- |
   | `boggle:games:v1` | `{ version, currentGameId, games: Game[] }` |
   | `boggle:roster:v1` | `{ version, players: KnownPlayer[] }` |
+  | `boggle:prefs:v1` | Seuil d'alerte, son, maintien de l'écran, dernière durée choisie |
+  | `boggle:timer:v1` | `{ gameId, roundId, state }` — chronomètre de la manche en cours |
+
+  Le partage n'est pas arbitraire : la **durée d'une manche** est une règle de jeu, elle vit dans
+  le `Game`. Le **seuil d'alerte**, le **son** et le **maintien de l'écran** tiennent à l'appareil
+  et à la table, pas au compte rendu d'une partie qu'on pourrait relire ailleurs. Quant à **l'état
+  courant du chronomètre**, c'est de la séance, pas de l'archive : dans `Round`, l'historique
+  traînerait un chrono figé dans chaque manche passée et reprendre une vieille partie
+  ressusciterait un décompte sans objet.
+
+- Les préférences sont validées **champ par champ** : une valeur corrompue ne coûte pas les autres.
+- Un champ ajouté après coup est traité comme **optionnel** à la lecture : les parties enregistrées
+  avant l'arrivée du chronomètre n'ont pas de `roundDurationSeconds` et repartent sur la valeur par
+  défaut. Passer en `v2` pour si peu ferait perdre l'historique sans raison.
 
 - L'écriture est **différée** de 250 ms : saisir un score à deux chiffres n'écrit qu'une fois.
 - La lecture au démarrage est **défensive** : le contenu de `localStorage` est validé contre le
@@ -247,6 +273,45 @@ Dans le panneau droit :
 - En partie, le format de grille est **verrouillé** sur l'écran principal : le changer rendrait les
   manches incomparables. Le bouton « Nouvelle grille » devient « Manche suivante ».
 
+### 8.2 Chronomètre
+
+Le chronomètre s'affiche **sous la grille**, dans le flux principal : on ne va pas ouvrir un tiroir
+pour savoir combien de temps il reste. Seuls ses réglages vivent dans le panneau droit.
+
+Il n'est **jamais démarré automatiquement** : `RULES.md` § 6 fait du lancement une étape distincte,
+et les joueurs ont besoin d'un instant pour s'installer. À zéro, il signale et s'arrête là — il ne
+saisit rien, n'enchaîne pas la manche et ne calcule aucun point.
+
+Trois points de conception méritent d'être retenus.
+
+**L'échéance plutôt que le compteur.** `domain/timer.ts` mémorise un `endsAt` absolu ; le temps
+restant se dérive de `Date.now()` à chaque affichage. Un onglet bridé en arrière-plan, un écran
+verrouillé ou un rechargement en pleine manche retrouvent donc la bonne valeur. Un compteur
+décrémenté en mémoire dériverait ou repartirait de zéro.
+
+**Une alerte redondante.** `global.css` neutralise les animations sous `prefers-reduced-motion` :
+un signal qui ne tiendrait qu'à la pulsation disparaîtrait pour ces utilisateurs. L'approche de la
+fin est donc portée par la couleur, un libellé et la pulsation — et annoncée dans une zone `status`
+dédiée. Le décompte lui-même n'est pas annoncé : une zone vive changeant quatre fois par seconde
+noierait un lecteur d'écran.
+
+**Des bips programmés d'avance.** `lib/audio.ts` synthétise deux bips par oscillateur WebAudio :
+zéro octet ajouté au bundle, aucune requête réseau. Ils ne sont pas déclenchés par un tic mais
+**programmés dans le graphe audio** au démarrage, aux décalages voulus sur `AudioContext.currentTime` :
+un onglet en arrière-plan les jouerait sinon en retard. Deux conséquences pratiques :
+
+- iOS et Safari exigent un **geste utilisateur** pour autoriser l'audio. Le contexte est donc créé
+  au clic sur « Démarrer » ou « Reprendre », jamais au chargement. Corollaire assumé : après un
+  rechargement en pleine manche, le son reste muet jusqu'à la prochaine interaction — l'alerte
+  visuelle, elle, fonctionne.
+- Programmer les bips est un **effet de bord** : il se fait avant `setState`, jamais dans son
+  updater, que React réexécute. Placé dedans, le bip de fin partait deux fois.
+
+Pendant qu'une manche est chronométrée, `useWakeLock` demande `navigator.wakeLock` pour que l'écran
+ne s'éteigne pas au milieu du décompte. L'API n'existe pas partout et le verrou peut être refusé :
+l'échec est silencieux. Le système le relâche dès que l'onglet passe en arrière-plan, d'où sa
+reprise au retour au premier plan.
+
 Points d'attention :
 
 - La grille est l'élément dominant : typographie très large, contraste élevé, lisible à un mètre.
@@ -288,8 +353,13 @@ fichier.
 | Unitaire | `domain/draw.ts`, `domain/dice.ts` — tirage et invariants des dés | Vitest |
 | Unitaire | `domain/game.ts` — transitions, totaux dérivés, ex æquo, conditions d'arrêt | Vitest |
 | Unitaire | `domain/roster.ts` — dédoublonnage insensible à la casse et aux accents | Vitest |
+| Unitaire | `domain/timer.ts` — pause/reprise, franchissement du seuil, échéance dépassée | Vitest |
 | Unitaire | `lib/storage.ts` — état corrompu, version obsolète, quota dépassé | Vitest |
+| Unitaire | `lib/audio.ts` — dégradation propre sans WebAudio | Vitest |
 | Composants | Panneaux, saisie des scores, chronomètre, rendu de la grille | Vitest + Testing Library |
+
+`domain/timer.ts` reçoit `now` en paramètre, comme le tirage reçoit `RandomFn` : transitions et
+alerte se testent sans faux timers ni horloge simulée.
 
 Le tirage étant aléatoire, il se teste par **injection d'un générateur à graine** et par vérification
 d'invariants sur un grand nombre de tirages, pas par comparaison à une grille figée.

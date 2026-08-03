@@ -78,7 +78,7 @@ Une **partie** est une suite de **manches**. Une manche correspond à un tirage 
 
 1. Créer une partie : choisir le format (4×4 ou 5×5), saisir les joueurs et le mode de fin.
 2. Lancer une manche : l'application tire une grille et l'affiche.
-3. Démarrer le chrono (3 minutes par défaut, durée modifiable).
+3. Démarrer le chrono (3 minutes par défaut, durée réglable de 30 s à 10 min).
 4. À la fin du temps, les joueurs comparent leurs listes et comptent leurs points.
 5. Saisir le total de chaque joueur pour la manche.
 6. L'application met à jour les totaux cumulés et le classement.
@@ -105,6 +105,19 @@ poursuivre au-delà. C'est aussi pourquoi un objectif exprimé en manches se mes
 grilles tirées, sans attendre que tous les scores soient saisis — un score de 0 est une saisie
 légitime, indiscernable d'une absence de saisie du point de vue d'un décompte automatique.
 
+### Chronomètre
+
+La durée d'une manche est choisie à la création de la partie et reste réglable ensuite. Elle
+appartient à la partie : toutes ses manches durent le même temps, sans quoi elles ne seraient pas
+comparables.
+
+Une **alerte** signale l'approche de la fin, par défaut 30 secondes avant. Le seuil est réglable de
+0 à 120 secondes, `0` la désactivant. Elle se manifeste à l'écran (couleur, libellé, pulsation) et
+par un bip, désactivable. Ces réglages tiennent à l'appareil et valent pour toutes les parties.
+
+Le chronomètre ne se lance jamais tout seul, et à zéro il se contente de signaler : il n'enchaîne
+pas la manche suivante et ne saisit aucun score.
+
 ### Historique des parties
 
 Les parties passées sont conservées sur l'appareil et peuvent être **reprises** : une partie
@@ -116,7 +129,7 @@ vingt parties les plus récentes sont conservées.
 ### Dans le périmètre
 
 - Tirage de grilles 4×4 et 5×5 conforme aux dés français
-- Chronomètre de manche
+- Chronomètre de manche, avec durée réglable et alerte visuelle et sonore avant la fin
 - Gestion des joueurs d'une partie, et répertoire local des joueurs déjà rencontrés
 - Choix du mode de fin de partie (libre, nombre de manches, score à atteindre)
 - Saisie manuelle des scores par joueur et par manche
