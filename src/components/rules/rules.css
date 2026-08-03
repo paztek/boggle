@@ -60,3 +60,18 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
+
+.rules__link {
+  color: var(--color-accent);
+  font-weight: 600;
+  text-underline-offset: 0.2em;
+}
+
+.rules__link:hover {
+  text-decoration-thickness: 2px;
+}
+
+.rules__hint {
+  font-size: var(--text-sm);
+  opacity: 0.8;
+}

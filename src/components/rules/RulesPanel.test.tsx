@@ -47,4 +47,16 @@ describe('RulesPanel', () => {
     const items = within(panel).getAllByRole('listitem');
     expect(items.some((li) => /au moins\s*4 lettres/.test(li.textContent ?? ''))).toBe(true);
   });
+
+  // Seul lien sortant de l'application : la vérification d'un mot est déléguée,
+  // jamais assurée par une liste embarquée (cf. docs/RULES.md § 7).
+  it('renvoie au vérificateur de mots de la FFSc, dans un nouvel onglet', () => {
+    render(<RulesPanel size={4} />);
+
+    const link = screen.getByRole('link', { name: /vérifier un mot/i });
+    expect(link).toHaveAttribute('href', 'https://www.ffscrabble.fr/verificateur-de-mots/');
+    expect(link).toHaveAttribute('target', '_blank');
+    // `noopener` : sans lui, la page ouverte garde une prise sur celle-ci.
+    expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
+  });
 });

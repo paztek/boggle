@@ -77,7 +77,20 @@ export function RulesPanel({ size, open, onOpenChange }: RulesPanelProps) {
             Un mot trouvé par <strong>plusieurs joueurs</strong> est rayé de toutes les listes.
           </li>
         </ul>
-        <p className="rules__note">En cas de litige, le dictionnaire de référence est l&apos;ODS.</p>
+        <p className="rules__note">
+          En cas de litige, le dictionnaire de référence est l&apos;ODS.{' '}
+          {/* Seul lien sortant de l'application : la vérification d'un mot est
+              déléguée, jamais assurée par une liste embarquée (cf. docs/RULES.md § 7). */}
+          <a
+            className="rules__link"
+            href="https://www.ffscrabble.fr/verificateur-de-mots/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Vérifier un mot sur le site de la FFSc
+          </a>{' '}
+          <span className="rules__hint">(nécessite une connexion)</span>
+        </p>
       </section>
     </SidePanel>
   );
