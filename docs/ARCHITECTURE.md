@@ -39,20 +39,21 @@ Aucune librairie de gestion d'état externe : l'état tient dans un `useReducer`
 │   │   └── fonts/            # InterDisplay sous-catégorisée + licence OFL
 │   ├── components/
 │   │   ├── board/            # Grille, tuiles, orientation des lettres
-│   │   ├── scoreboard/       # Tableau des scores, classement, saisie
-│   │   ├── setup/            # Création de partie, gestion des joueurs
+│   │   ├── game/             # Panneau droit : joueurs, fin de partie, scores, historique
+│   │   ├── rules/            # Panneau gauche : barème & rappel des règles
 │   │   ├── timer/            # Chronomètre de manche
-│   │   └── ui/               # Boutons, champs, feuilles modales
+│   │   └── ui/               # SidePanel (coquille commune aux deux panneaux)
 │   ├── domain/
 │   │   ├── dice.ts           # Jeux de dés 4x4 et 5x5
 │   │   ├── draw.ts           # Tirage : mélange, lancer, orientation
 │   │   ├── scoring.ts        # Barème (données d'affichage uniquement)
-│   │   └── game.ts           # Types Game / Round / Player, réducteur
+│   │   ├── game.ts           # Types Game / Round / Player, transitions, dérivations
+│   │   └── roster.ts         # Répertoire des joueurs déjà rencontrés
 │   ├── hooks/
-│   │   ├── useGame.ts
-│   │   ├── usePersistedState.ts
+│   │   ├── useGame.ts        # État applicatif + persistance différée
 │   │   └── useCountdown.ts
 │   ├── lib/
+│   │   ├── ids.ts            # Identifiants locaux
 │   │   ├── random.ts         # Abstraction du générateur aléatoire
 │   │   └── storage.ts        # Lecture/écriture localStorage, versionnage
 │   ├── styles/
@@ -108,22 +109,44 @@ type Player = {
   name: string;
 };
 
+/** Condition d'arrêt — *proposée*, jamais imposée (cf. docs/RULES.md § 6). */
+type EndCondition =
+  | { kind: 'libre' }
+  | { kind: 'manches'; rounds: number }
+  | { kind: 'score'; target: number };
+
 type Game = {
   id: string;
   size: BoardSize;
   players: readonly Player[];
   rounds: readonly Round[];
+  endCondition: EndCondition;
+  status: 'en-cours' | 'terminee';
   createdAt: string;           // ISO 8601
-  /** Durée d'une manche en secondes. */
-  roundDurationSeconds: number;
+  finishedAt: string | null;   // ISO 8601
+};
+
+/** Joueur du répertoire local, réutilisable d'une partie à l'autre. */
+type KnownPlayer = {
+  id: string;
+  name: string;
+  lastPlayedAt: string;        // ISO 8601, sert au tri
 };
 ```
 
 Les totaux cumulés et le classement sont **dérivés** de `rounds`, jamais stockés. Un joueur ajouté
 en cours de partie n'a simplement pas d'entrée dans les `scores` des manches antérieures ; l'absence
-est traitée comme `0` au calcul, et affichée comme `—` dans le tableau.
+est traitée comme `0` au calcul, et affichée comme `—` dans le tableau. La distinction entre
+« absent » et « zéro » est significative : `setScore(…, null)` efface une saisie, `setScore(…, 0)`
+enregistre un score nul.
 
 Toutes les transitions d'état produisent de **nouveaux objets** ; aucune mutation en place.
+
+Comme le hasard du tirage, les valeurs non déterministes du modèle — identifiants et horodatages —
+sont **injectées** par l'appelant. `domain/game.ts` et `domain/roster.ts` ne connaissent ni
+`crypto.randomUUID`, ni `Date`, ce qui les rend testables sans horloge simulée. Le réducteur de
+`hooks/useGame.ts` obéit à la même règle : ce sont les créateurs d'actions qui tirent la grille,
+forgent l'identifiant et datent.
 
 ## 5. Jeux de dés
 
@@ -171,12 +194,24 @@ qui rend le tirage testable — aucun appel direct à `Math.random()` dans `doma
 
 ## 7. État et persistance
 
-- L'état de la partie est porté par un `useReducer` exposé via un contexte React.
-- Chaque transition est sérialisée dans `localStorage` sous une clé versionnée
-  (`boggle:game:v1`), en écriture différée pour éviter d'écrire à chaque frappe.
+- L'état applicatif est porté par un `useReducer` dans `hooks/useGame.ts`, consommé directement par
+  `App` qui le distribue en props — aucun contexte n'est nécessaire à un seul niveau d'imbrication.
+- Deux clés versionnées, écrites indépendamment :
+
+  | Clé | Contenu |
+  | --- | --- |
+  | `boggle:games:v1` | `{ version, currentGameId, games: Game[] }` |
+  | `boggle:roster:v1` | `{ version, players: KnownPlayer[] }` |
+
+- L'écriture est **différée** de 250 ms : saisir un score à deux chiffres n'écrit qu'une fois.
 - La lecture au démarrage est **défensive** : le contenu de `localStorage` est validé contre le
   schéma attendu avant d'être adopté. Un état invalide ou d'une version antérieure est écarté sans
-  faire planter l'application, et l'utilisateur repart d'une partie vierge.
+  faire planter l'application. La validation est **granulaire** — une partie corrompue est écartée
+  seule, les autres restent jouables — et une `currentGameId` qui ne désigne plus rien est oubliée.
+- `localStorage` peut lever (quota dépassé, navigation privée, stockage désactivé) : lecture et
+  écriture sont encapsulées dans un `try`/`catch`. Au pire, la partie continue en mémoire.
+- L'historique est borné à **20 parties**, la partie courante étant toujours conservée même si elle
+  sort de cette fenêtre — reprendre une partie ancienne ne doit pas la faire disparaître.
 - Aucune donnée ne quitte l'appareil.
 
 ## 8. Interface
@@ -187,12 +222,30 @@ Trois écrans, sans routeur — l'état de la partie détermine la vue :
 2. **Manche** — grille en grand, chronomètre, bouton « Nouvelle grille ».
 3. **Scores** — saisie des totaux de la manche, classement cumulé, rappel du barème.
 
-Élément transversal, disponible sur tous les écrans : un **panneau dépliable à gauche**
-(`components/rules/RulesPanel`) rappelle le barème du format courant et un bref récapitulatif des
-règles. Purement présentationnel (aucun calcul de points), il s'ouvre depuis un bouton fixé en haut
-à gauche, se replie via un voile de fond ou la touche `Échap`, et sort du flux de tabulation
-(`inert`) une fois refermé. Son ouverture est animée en `transform` (glissement) et `opacity`
-(voile) uniquement.
+Deux **panneaux dépliables** encadrent l'écran, disponibles en permanence :
+
+| Panneau | Contenu |
+| --- | --- |
+| Gauche — `components/rules/RulesPanel` | Barème du format courant, rappel des règles. Purement présentationnel |
+| Droite — `components/game/GamePanel` | Joueurs, démarrage d'une partie, mode de fin, feuille de scores, historique |
+
+Ils partagent la même coquille, `components/ui/SidePanel` : bouton fixé en haut, voile de fond,
+fermeture au clic hors panneau ou à la touche `Échap`, sortie du flux de tabulation (`inert`) une
+fois replié, glissement animé en `transform` et voile en `opacity` uniquement. Le bord d'ancrage
+est un simple `data-side`. La coquille accepte une ouverture **pilotée** (`open` / `onOpenChange`)
+ou gère son propre état si ces props sont omises ; `App` la pilote pour n'ouvrir **qu'un panneau à
+la fois** — sur mobile, chacun occupe 88 % de la largeur et ils se recouvriraient.
+
+Dans le panneau droit :
+
+- La feuille de scores est un tableau à `1 + n` colonnes (numéro de manche, puis un joueur par
+  colonne), avec les totaux dérivés en pied. Au-delà de trois ou quatre joueurs, elle défile
+  **horizontalement dans son conteneur** plutôt que d'élargir la page.
+- Les champs numériques (nombre de manches, score cible) gardent la saisie telle quelle — y compris
+  vide, le temps de retaper — et ne sont ramenés dans leurs bornes qu'à la sortie du champ. Les
+  contraindre à chaque frappe rendrait impossible d'effacer pour retaper.
+- En partie, le format de grille est **verrouillé** sur l'écran principal : le changer rendrait les
+  manches incomparables. Le bouton « Nouvelle grille » devient « Manche suivante ».
 
 Points d'attention :
 
@@ -234,9 +287,11 @@ fichier.
 
 | Niveau | Cible | Outil |
 | --- | --- | --- |
-| Unitaire | `domain/` — tirage, invariants des dés, dérivation des totaux | Vitest |
-| Unitaire | `lib/storage.ts` — validation d'un état corrompu ou obsolète | Vitest |
-| Composants | Saisie des scores, chronomètre, rendu de la grille | Vitest + Testing Library |
+| Unitaire | `domain/draw.ts`, `domain/dice.ts` — tirage et invariants des dés | Vitest |
+| Unitaire | `domain/game.ts` — transitions, totaux dérivés, ex æquo, conditions d'arrêt | Vitest |
+| Unitaire | `domain/roster.ts` — dédoublonnage insensible à la casse et aux accents | Vitest |
+| Unitaire | `lib/storage.ts` — état corrompu, version obsolète, quota dépassé | Vitest |
+| Composants | Panneaux, saisie des scores, chronomètre, rendu de la grille | Vitest + Testing Library |
 
 Le tirage étant aléatoire, il se teste par **injection d'un générateur à graine** et par vérification
 d'invariants sur un grand nombre de tirages, pas par comparaison à une grille figée.
@@ -280,5 +335,6 @@ Le site étant statique et sans routeur, aucune réécriture d'URL n'est nécess
 | Sujet | État |
 | --- | --- |
 | Vérification d'un mot litigieux par lien sortant | Envisagée, hors du périmètre initial |
-| Conservation de l'historique des parties terminées | Non tranchée — seule la partie en cours est persistée aujourd'hui |
+| Conservation de l'historique des parties terminées | **Tranchée** — les 20 dernières parties sont conservées et peuvent être reprises |
+| Ajout d'un joueur en cours de partie | Supporté par le modèle (`addPlayer`), pas encore exposé dans l'interface |
 | Licence du dépôt | À définir |

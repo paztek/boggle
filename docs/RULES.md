@@ -76,7 +76,7 @@ qui comptent leurs points sur leur feuille et saisissent le total obtenu.
 
 Une **partie** est une suite de **manches**. Une manche correspond à un tirage de grille.
 
-1. Créer une partie : choisir le format (4×4 ou 5×5) et saisir les joueurs.
+1. Créer une partie : choisir le format (4×4 ou 5×5), saisir les joueurs et le mode de fin.
 2. Lancer une manche : l'application tire une grille et l'affiche.
 3. Démarrer le chrono (3 minutes par défaut, durée modifiable).
 4. À la fin du temps, les joueurs comparent leurs listes et comptent leurs points.
@@ -85,8 +85,31 @@ Une **partie** est une suite de **manches**. Une manche correspond à un tirage 
 7. Répéter à partir de l'étape 2 autant de manches que souhaité.
 8. Le vainqueur est le joueur au total cumulé le plus élevé à l'arrêt de la partie.
 
-Le nombre de manches n'est pas fixé à l'avance : une partie se termine quand les joueurs le
-décident.
+Les joueurs sont **enregistrés localement** d'une partie à l'autre : un nom déjà rencontré est
+proposé en un clic plutôt que retapé. La comparaison ignore la casse et les accents — « Chloé » et
+« chloe » désignent la même personne.
+
+### Fin de partie
+
+Trois modes, choisis à la création :
+
+| Mode | Objectif |
+| --- | --- |
+| **Libre** | Aucun ; la partie s'arrête quand les joueurs le décident |
+| **Nombre de manches** | Un nombre de manches fixé à l'avance (1 à 30) |
+| **Score à atteindre** | Un total à franchir par au moins un joueur (1 à 999) |
+
+Un objectif atteint **ne termine pas la partie tout seul** : l'application signale que le but est
+atteint et propose de conclure. Ce sont toujours les joueurs qui décident, et rien n'empêche de
+poursuivre au-delà. C'est aussi pourquoi un objectif exprimé en manches se mesure au nombre de
+grilles tirées, sans attendre que tous les scores soient saisis — un score de 0 est une saisie
+légitime, indiscernable d'une absence de saisie du point de vue d'un décompte automatique.
+
+### Historique des parties
+
+Les parties passées sont conservées sur l'appareil et peuvent être **reprises** : une partie
+terminée redevient courante et les manches se poursuivent là où elles s'étaient arrêtées. Seules les
+vingt parties les plus récentes sont conservées.
 
 ## 7. Périmètre fonctionnel
 
@@ -94,11 +117,12 @@ décident.
 
 - Tirage de grilles 4×4 et 5×5 conforme aux dés français
 - Chronomètre de manche
-- Gestion des joueurs d'une partie
+- Gestion des joueurs d'une partie, et répertoire local des joueurs déjà rencontrés
+- Choix du mode de fin de partie (libre, nombre de manches, score à atteindre)
 - Saisie manuelle des scores par joueur et par manche
 - Totaux cumulés, classement, historique des manches
 - Rappel du barème à l'écran
-- Persistance locale de la partie en cours
+- Persistance locale de la partie en cours et des parties passées, reprise possible
 
 ### Hors périmètre (décisions assumées)
 
