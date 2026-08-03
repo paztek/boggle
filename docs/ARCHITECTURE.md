@@ -18,6 +18,7 @@
 | **React + TypeScript** | UI | Typage du modèle de données (parties, manches, scores), composants testables |
 | **CSS natif + custom properties** | Styles | Aucun runtime CSS, tokens de design centralisés, budget CSS respecté |
 | **Vitest + Testing Library** | Tests unitaires / composants | Intégration native avec Vite |
+| **oxlint** | Lint | Fourni par le template Vite, sans configuration ni dépendances lourdes |
 | **GitHub Actions** | CI / déploiement | Build et publication sur Pages à chaque push de `main` |
 
 Aucune librairie de gestion d'état externe : l'état tient dans un `useReducer` + contexte React.
@@ -120,16 +121,28 @@ Toutes les transitions d'état produisent de **nouveaux objets** ; aucune mutati
 
 ## 5. Jeux de dés
 
-Les faces des dés vivent dans `src/domain/dice.ts` sous forme de tableaux figés :
+Les faces des dés vivent dans `src/domain/dice.ts`, écrites **face par face** :
 
 ```ts
-export const DICE_FR_4X4: readonly Die[] = [ /* 16 dés × 6 faces */ ];
-export const DICE_FR_5X5: readonly Die[] = [ /* 25 dés × 6 faces */ ];
+export const DICE_4X4: readonly Die[] = [
+  ['A', 'A', 'E', 'E', 'G', 'N'],
+  // … 16 dés au total
+];
 ```
 
-> **À compléter.** Les faces exactes des dés français seront fournies et intégrées telles quelles.
-> Elles sont la **seule** source du tirage : aucune table de fréquence de lettres ne doit être
-> introduite en parallèle, sous peine de faire diverger le tirage du jeu physique.
+Les faces sont des tableaux explicites et non des chaînes à découper : `Qu` est une face unique,
+ce qu'un découpage caractère par caractère ne saurait pas exprimer.
+
+> **⚠️ Jeu de dés provisoire.** Les faces actuellement présentes sont celles du Boggle **anglais**
+> (Hasbro 1983 pour le 4×4, Big Boggle pour le 5×5). Elles ne servent qu'à rendre l'application
+> fonctionnelle en attendant la liste officielle des dés **français**, qui les remplacera
+> intégralement.
+>
+> Tant que la constante `DICE_ARE_PROVISIONAL` vaut `true`, l'interface affiche un bandeau
+> d'avertissement. Ne pas le retirer avant la substitution.
+
+Ces faces sont la **seule** source du tirage : aucune table de fréquence de lettres ne doit être
+introduite en parallèle, sous peine de faire diverger le tirage du jeu physique.
 
 Invariants vérifiés par les tests :
 
@@ -192,29 +205,43 @@ d'invariants sur un grand nombre de tirages, pas par comparaison à une grille f
 
 ## 10. Déploiement
 
-Workflow `.github/workflows/deploy.yml` :
+Workflow `.github/workflows/deploy.yml`, déclenché sur push et pull request vers `main` :
 
 1. `npm ci`
-2. `npm run lint && npm test`
-3. `npm run build`
-4. Publication de `dist/` via `actions/deploy-pages`
+2. `npm run lint`
+3. `npx tsc -b` — vérification des types
+4. `npm test`
+5. `npm run build`
+6. Publication de `dist/` via `actions/upload-pages-artifact` puis `actions/deploy-pages`
 
-Configuration Vite :
+Les étapes 1 à 5 tournent aussi sur les pull requests ; seul le déploiement est réservé aux pushes
+sur `main`.
+
+Le chemin de base est dérivé du nom du dépôt par le workflow :
 
 ```ts
-export default defineConfig({
-  base: '/boggle/', // doit correspondre au nom du dépôt GitHub Pages
-  plugins: [react()],
-});
+const base = process.env.BASE_PATH ?? '/boggle/';
 ```
 
-Le site étant statique et sans routeur, aucune réécriture d'URL n'est nécessaire côté Pages.
+```yaml
+env:
+  BASE_PATH: /${{ github.event.repository.name }}/
+```
+
+Renommer le dépôt ne casse donc pas les assets. En local, la valeur par défaut `/boggle/`
+s'applique : `npm run preview` sert le site sur `http://localhost:4173/boggle/`.
+
+**Prérequis côté GitHub** : dans _Settings → Pages_, choisir **GitHub Actions** comme source de
+déploiement. Sans cela, le job `deploy` échoue.
+
+Le site étant statique et sans routeur, aucune réécriture d'URL n'est nécessaire. Un fichier
+`public/.nojekyll` est publié pour désactiver tout traitement Jekyll.
 
 ## 11. Décisions ouvertes
 
 | Sujet | État |
 | --- | --- |
-| Faces exactes des dés FR 4×4 et 5×5 | En attente des données |
+| Faces exactes des dés FR 4×4 et 5×5 | En attente des données — jeu anglais utilisé provisoirement, cf. § 5 |
 | Vérification d'un mot litigieux par lien sortant | Envisagée, hors du périmètre initial |
 | Conservation de l'historique des parties terminées | Non tranchée — seule la partie en cours est persistée aujourd'hui |
 | Licence du dépôt | À définir |

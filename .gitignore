@@ -27,6 +27,7 @@ test-results/
 playwright-report/
 blob-report/
 .playwright/
+.playwright-mcp/
 
 # Variables d'environnement
 .env

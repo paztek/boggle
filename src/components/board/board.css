@@ -1,0 +1,39 @@
+.board {
+  display: grid;
+  gap: var(--board-gap);
+  width: var(--board-max-width);
+  aspect-ratio: 1;
+  padding: var(--board-gap);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  grid-template-columns: repeat(var(--board-size), 1fr);
+}
+
+.board__tile {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background-color: var(--tile-bg);
+  box-shadow: var(--tile-shadow);
+  color: var(--tile-text);
+  font-family: var(--font-tile);
+  font-size: var(--text-tile);
+  font-weight: 700;
+  line-height: 1;
+  user-select: none;
+}
+
+/* La rotation passe par `transform` : jamais par une propriété de mise en page. */
+.board__face {
+  display: block;
+  transform: rotate(var(--tile-rotation));
+  transition: transform var(--duration-normal) var(--ease-out-expo);
+}
+
+/* Lève l'ambiguïté M/W et N/Z, comme le point souligné du jeu physique. */
+.board__face--ambiguous {
+  text-decoration: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}

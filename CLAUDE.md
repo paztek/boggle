@@ -78,6 +78,15 @@ npm run lint      # lint
 
 ## État actuel
 
-Le dépôt ne contient pour l'instant que sa documentation. Le squelette applicatif (Vite + React +
-TypeScript) et les faces exactes des dés français restent à intégrer — voir la section « Décisions
-ouvertes » de [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+En place : le squelette Vite + React + TypeScript, la couche `src/domain/` (dés, tirage, barème)
+avec ses tests, l'affichage de la grille, et le workflow de vérification et déploiement GitHub Pages.
+
+Restent à faire :
+
+- **Remplacer le jeu de dés provisoire** — les faces actuelles sont celles du Boggle anglais, en
+  attente de la liste française. Retirer `DICE_ARE_PROVISIONAL` et son bandeau après substitution.
+- Réducteur de partie (`src/domain/game.ts`) : joueurs, manches, scores saisis, totaux dérivés.
+- Persistance `localStorage` versionnée et validée (`src/lib/storage.ts`).
+- Écrans Setup et Scores, chronomètre de manche.
+
+Voir la section « Décisions ouvertes » de [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
