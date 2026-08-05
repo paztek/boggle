@@ -27,6 +27,11 @@ export default function App() {
     prefs: game.prefs,
   });
 
+  // Tant que la manche n'a pas démarré, la grille reste masquée : celui qui
+  // manipule l'appli ne doit pas lire les lettres avant les autres. Une nouvelle
+  // manche remet le chrono à « arrete », donc masque de nouveau la grille.
+  const covered = inGame && timer.status === 'arrete';
+
   // L'écran ne doit pas s'éteindre au milieu d'une manche chronométrée.
   useWakeLock(game.prefs.keepAwake && timer.running);
 
@@ -66,14 +71,24 @@ export default function App() {
       </header>
 
       <main className="app__main">
-        <Board board={game.board} />
+        <div className="app__board">
+          <Board board={game.board} blurred={covered} />
+
+          {/* Le bouton couvre toute la grille : le libellé est centré, mais la
+              zone cliquable est la grille entière. Démarrer révèle et lance le
+              chrono d'un même geste (qui débloque aussi l'audio sur iOS). */}
+          {covered && (
+            <button type="button" className="app__reveal" onClick={timer.start}>
+              <span className="app__reveal-label">Démarrer</span>
+            </button>
+          )}
+        </div>
 
         {inGame && (
           <Timer
             status={timer.status}
             remainingMs={timer.remainingMs}
             alerting={timer.alerting}
-            onStart={timer.start}
             onPause={timer.pause}
             onResume={timer.resume}
             onReset={timer.reset}

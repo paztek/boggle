@@ -306,6 +306,17 @@ Il n'est **jamais démarré automatiquement** : `RULES.md` § 6 fait du lancemen
 et les joueurs ont besoin d'un instant pour s'installer. À zéro, il signale et s'arrête là — il ne
 saisit rien, n'enchaîne pas la manche et ne calcule aucun point.
 
+**Grille masquée jusqu'au démarrage.** Tant que le chrono d'une manche est à l'arrêt, `App` floute la
+grille (`Board` reçoit `blurred`, filtre `blur()` piloté par le token `--board-blur`) et superpose
+un bouton **Démarrer** qui couvre toute la grille : le libellé est centré, mais la zone cliquable est
+la grille entière. Le même clic révèle la grille et lance le chrono — sinon la personne qui manipule
+l'appareil lirait les lettres avant les autres. Le lancement n'a donc **plus de bouton propre dans le
+chronomètre** : il vit sur la grille. Le flou n'est **pas animé** — la règle « animations sur
+`transform`/`opacity` seulement » exclut d'animer un `filter` — donc le défloutage est instantané. Le
+masquage vaut aussi pour les lecteurs d'écran : `Board` cesse d'énoncer les lettres et annonce une
+grille masquée, sans quoi le masquage visuel serait contournable. Comme une nouvelle manche remet le
+chrono à `arrete`, la grille est de nouveau masquée à chaque manche, sans code dédié.
+
 Trois points de conception méritent d'être retenus.
 
 **L'échéance plutôt que le compteur.** `domain/timer.ts` mémorise un `endsAt` absolu ; le temps
@@ -490,4 +501,5 @@ elles disent ce qui a été tranché, et pourquoi, afin qu'on ne les rouvre pas 
 | Vérification d'un mot litigieux par lien sortant | **Tranchée** — lien vers le vérificateur de la FFSc dans le panneau des règles ; seul lien externe de l'application |
 | Conservation de l'historique des parties terminées | **Tranchée** — les 20 dernières parties sont conservées et peuvent être reprises |
 | Ajout d'un joueur en cours de partie | **Tranchée** — hors périmètre ; `addPlayer` reste disponible côté domaine, avec ses tests, si le besoin revient |
+| Grille masquée avant le démarrage de la manche | **Tranchée** — flou + bouton « Démarrer » couvrant toute la grille, révélée au lancement du chrono ; évite l'avantage de celui qui manipule l'appareil |
 | Licence du dépôt | **Tranchée** — [MIT](../LICENSE) : reprise libre, à condition de conserver la mention de copyright |

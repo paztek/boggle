@@ -60,6 +60,9 @@
   /* Grille */
   --board-max-width: min(92vw, 34rem);
   --board-gap: clamp(0.25rem, 0.15rem + 0.7vw, 0.625rem);
+  /* Flou de la grille masquée : assez fort pour rendre les lettres indevinables,
+     quelle que soit la taille de tuile (cf. § 8 de docs/ARCHITECTURE.md). */
+  --board-blur: clamp(0.75rem, 0.4rem + 1.6vw, 1.25rem);
 
   /* Panneau latéral */
   --panel-width: min(88vw, 22rem);

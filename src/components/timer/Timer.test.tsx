@@ -8,7 +8,6 @@ function renderTimer(overrides: Partial<Parameters<typeof Timer>[0]> = {}) {
     status: 'arrete' as const,
     remainingMs: 180_000,
     alerting: false,
-    onStart: vi.fn(),
     onPause: vi.fn(),
     onResume: vi.fn(),
     onReset: vi.fn(),
@@ -33,14 +32,12 @@ describe('Timer — affichage', () => {
 });
 
 describe('Timer — contrôles selon l’état', () => {
-  it('à l’arrêt : seul « Démarrer » est proposé', async () => {
-    const user = userEvent.setup();
-    const props = renderTimer();
+  it('à l’arrêt : aucun bouton — « Démarrer » est porté par la grille masquée', () => {
+    renderTimer();
 
+    // Le lancement se fait sur la grille (cf. App), pas dans le chrono.
+    expect(screen.queryByRole('button', { name: /démarrer/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /réinitialiser/i })).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /démarrer/i }));
-
-    expect(props.onStart).toHaveBeenCalled();
   });
 
   it('en cours : pause et réinitialisation', async () => {

@@ -4,18 +4,27 @@ import './board.css';
 
 type BoardProps = {
   readonly board: BoardModel;
+  /**
+   * Grille masquée tant que la manche n'a pas démarré : les lettres sont
+   * floutées à l'écran et ne sont pas énoncées aux lecteurs d'écran, sans quoi
+   * la personne qui manipule l'appli prendrait de l'avance.
+   */
+  readonly blurred?: boolean;
 };
 
 /** Affiche la grille tirée. Composant purement présentationnel. */
-export function Board({ board }: BoardProps) {
+export function Board({ board, blurred = false }: BoardProps) {
   const label = `Grille de Boggle ${board.size} par ${board.size}`;
+  const description = blurred
+    ? `${label} : masquée jusqu'au démarrage de la manche`
+    : `${label} : ${board.tiles.map((tile) => tile.face).join(', ')}`;
 
   return (
     <div
-      className="board"
+      className={blurred ? 'board board--blurred' : 'board'}
       style={{ '--board-size': board.size } as React.CSSProperties}
       role="img"
-      aria-label={`${label} : ${board.tiles.map((tile) => tile.face).join(', ')}`}
+      aria-label={description}
     >
       {board.tiles.map((tile, index) => (
         <div className="board__tile" key={`${index}-${tile.dieIndex}`} aria-hidden="true">

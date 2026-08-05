@@ -10,6 +10,13 @@
   grid-template-columns: repeat(var(--board-size), 1fr);
 }
 
+/* Grille masquée avant le démarrage de la manche : le flou rend les lettres
+   indevinables. Pas de transition — la règle « animations sur transform/opacity
+   seulement » exclut d'animer un filter ; le défloutage est donc instantané. */
+.board--blurred {
+  filter: blur(var(--board-blur));
+}
+
 .board__tile {
   display: grid;
   place-items: center;

@@ -40,6 +40,43 @@
   font-size: var(--text-sm);
 }
 
+/* Conteneur d'ancrage : le bouton de révélation se superpose à la grille. */
+.app__board {
+  position: relative;
+}
+
+/* Bouton « Démarrer » qui recouvre toute la grille masquée : le libellé est
+   centré, mais la zone cliquable couvre la grille entière. */
+.app__reveal {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-overlay);
+  cursor: pointer;
+}
+
+.app__reveal-label {
+  border-radius: var(--radius-md);
+  background-color: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  padding: var(--space-sm) var(--space-xl);
+  box-shadow: var(--panel-shadow);
+  transition: transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.app__reveal:hover .app__reveal-label {
+  transform: translateY(-1px);
+}
+
+.app__reveal:active .app__reveal-label {
+  transform: translateY(1px);
+}
+
 .app__actions {
   display: flex;
   align-items: center;

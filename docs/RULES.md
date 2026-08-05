@@ -77,8 +77,9 @@ qui comptent leurs points sur leur feuille et saisissent le total obtenu.
 Une **partie** est une suite de **manches**. Une manche correspond à un tirage de grille.
 
 1. Créer une partie : choisir le format (4×4 ou 5×5), saisir les joueurs et le mode de fin.
-2. Lancer une manche : l'application tire une grille et l'affiche.
-3. Démarrer le chrono (3 minutes par défaut, durée réglable de 30 s à 10 min).
+2. Lancer une manche : l'application tire une grille et l'affiche **masquée** (lettres floutées).
+3. Démarrer le chrono (3 minutes par défaut, durée réglable de 30 s à 10 min) : le clic **révèle la
+   grille** et lance le décompte d'un même geste.
 4. À la fin du temps, les joueurs comparent leurs listes et comptent leurs points.
 5. Saisir le total de chaque joueur pour la manche.
 6. L'application met à jour les totaux cumulés et le classement.
@@ -117,6 +118,12 @@ par un bip, désactivable. Ces réglages tiennent à l'appareil et valent pour t
 
 Le chronomètre ne se lance jamais tout seul, et à zéro il se contente de signaler : il n'enchaîne
 pas la manche suivante et ne saisit aucun score.
+
+Tant qu'une manche n'a pas démarré, la grille est **masquée** : les lettres sont floutées et
+indevinables, et le bouton **Démarrer** couvre toute la grille. Le clic révèle la grille et lance le
+chrono en même temps — sans quoi la personne qui manipule l'appareil verrait les lettres avant les
+autres et prendrait de l'avance. Chaque nouvelle manche remasque la grille jusqu'au démarrage
+suivant.
 
 Pendant le décompte, l'application demande à l'appareil de **garder l'écran allumé** — personne ne
 touche l'écran pendant une manche, et il s'éteindrait au milieu. Le réglage est désactivable, et
