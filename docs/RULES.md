@@ -90,6 +90,16 @@ Les joueurs sont **enregistrés localement** d'une partie à l'autre : un nom d�
 proposé en un clic plutôt que retapé. La comparaison ignore la casse et les accents — « Chloé » et
 « chloe » désignent la même personne.
 
+Une manche peut être **supprimée** depuis la feuille de scores, par le « × » de sa ligne : une grille
+tirée par erreur, une manche jouée à côté de la plaque, et la ligne s'efface avec les scores qui y
+étaient saisis. Les manches suivantes sont renumérotées, les totaux recalculés, et un objectif
+exprimé en manches recule d'autant. L'opération demande confirmation sur place, car elle est
+définitive au même titre que la suppression d'une partie.
+
+Une partie garde toujours **au moins une manche** : elle en tire une dès sa création, et c'est cette
+manche qui fournit la grille affichée. Supprimer la dernière reviendrait à supprimer la partie, ce
+que l'historique permet déjà — le « × » ne s'affiche donc qu'à partir de deux manches.
+
 ### Fin de partie
 
 Trois modes, choisis à la création :
@@ -147,7 +157,7 @@ elle est définitive : rien n'ayant jamais quitté l'appareil, il n'existe aucun
 - Chronomètre de manche, avec durée réglable et alerte visuelle et sonore avant la fin
 - Gestion des joueurs d'une partie, et répertoire local des joueurs déjà rencontrés
 - Choix du mode de fin de partie (libre, nombre de manches, score à atteindre)
-- Saisie manuelle des scores par joueur et par manche
+- Saisie manuelle des scores par joueur et par manche, et suppression d'une manche
 - Totaux cumulés, classement, historique des manches
 - Rappel du barème à l'écran
 - Persistance locale de la partie en cours et des parties passées, reprise et suppression possibles

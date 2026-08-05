@@ -4,7 +4,13 @@ import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { diceFor } from '../../domain/dice.ts';
 import { drawBoard } from '../../domain/draw.ts';
-import { addRound, createGame, setScore, type Game } from '../../domain/game.ts';
+import {
+  addRound,
+  createGame,
+  removeRound,
+  setScore,
+  type Game,
+} from '../../domain/game.ts';
 import type { KnownPlayer } from '../../domain/roster.ts';
 import { createSeededRandom } from '../../lib/random.ts';
 import { DEFAULT_PREFERENCES } from '../../lib/storage.ts';
@@ -46,6 +52,7 @@ function renderPanel(overrides: Partial<Parameters<typeof GamePanel>[0]> = {}) {
     pastGames: [],
     onStart: vi.fn(),
     onSetScore: vi.fn(),
+    onRemoveRound: vi.fn(),
     onSetDuration: vi.fn(),
     onSetPrefs: vi.fn(),
     onFinish: vi.fn(),
@@ -77,6 +84,7 @@ function StatefulPanel({ initial }: { readonly initial: Game }) {
       onSetScore={(roundId, playerId, points) =>
         setGame((current) => setScore(current, roundId, playerId, points))
       }
+      onRemoveRound={(roundId) => setGame((current) => removeRound(current, roundId))}
       onSetDuration={vi.fn()}
       onSetPrefs={vi.fn()}
       onFinish={vi.fn()}
@@ -262,10 +270,24 @@ describe('GamePanel — démarrage d’une partie', () => {
 
 describe('GamePanel — partie en cours', () => {
   it('affiche une colonne par joueur plus celle des manches', () => {
-    renderPanel({ game: makeGame(2) });
+    renderPanel({ game: makeGame(1) });
 
     const headers = within(screen.getByRole('table')).getAllByRole('columnheader');
     expect(headers.map((cell) => cell.textContent)).toEqual(['Manche', 'Alice', 'Bob']);
+  });
+
+  // La colonne de suppression n'apparaît qu'à partir de deux manches ; son
+  // en-tête reste vide à l'œil, mais nommé pour un lecteur d'écran.
+  it('ajoute une colonne de suppression dès la deuxième manche', () => {
+    renderPanel({ game: makeGame(2) });
+
+    const headers = within(screen.getByRole('table')).getAllByRole('columnheader');
+    expect(headers.map((cell) => cell.textContent)).toEqual([
+      'Manche',
+      'Alice',
+      'Bob',
+      'Supprimer',
+    ]);
   });
 
   it('remonte la saisie d’un score', async () => {
@@ -323,6 +345,74 @@ describe('GamePanel — partie en cours', () => {
 
     expect(screen.getByText('Manche 1 / 2')).toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+});
+
+describe('GamePanel — suppression d’une manche', () => {
+  it('demande confirmation avant de supprimer', async () => {
+    const user = userEvent.setup();
+    const props = renderPanel({ game: makeGame(2) });
+
+    await user.click(screen.getByRole('button', { name: 'Supprimer la manche 1' }));
+
+    expect(props.onRemoveRound).not.toHaveBeenCalled();
+    expect(screen.getByText(/supprimer la manche 1 et ses scores/i)).toBeInTheDocument();
+  });
+
+  it('supprime après confirmation', async () => {
+    const user = userEvent.setup();
+    const props = renderPanel({ game: makeGame(2) });
+
+    await user.click(screen.getByRole('button', { name: 'Supprimer la manche 1' }));
+    await user.click(screen.getByRole('button', { name: 'Supprimer' }));
+
+    expect(props.onRemoveRound).toHaveBeenCalledWith('r-0');
+  });
+
+  it('renonce à supprimer sur « Annuler »', async () => {
+    const user = userEvent.setup();
+    const props = renderPanel({ game: makeGame(2) });
+
+    await user.click(screen.getByRole('button', { name: 'Supprimer la manche 1' }));
+    await user.click(screen.getByRole('button', { name: /annuler/i }));
+
+    expect(props.onRemoveRound).not.toHaveBeenCalled();
+    expect(screen.queryByText(/et ses scores/i)).not.toBeInTheDocument();
+  });
+
+  // Un « × » touché par mégarde doit se refermer aussi simplement qu'il s'ouvre.
+  it('referme la confirmation au second clic sur le « × »', async () => {
+    const user = userEvent.setup();
+    renderPanel({ game: makeGame(2) });
+
+    const remove = screen.getByRole('button', { name: 'Supprimer la manche 1' });
+    await user.click(remove);
+    await user.click(remove);
+
+    expect(screen.queryByText(/et ses scores/i)).not.toBeInTheDocument();
+  });
+
+  it('retire la ligne et met à jour les totaux', async () => {
+    const user = userEvent.setup();
+    let game = setScore(makeGame(2), 'r-0', 'p-alice', 5);
+    game = setScore(game, 'r-1', 'p-alice', 7);
+    render(<StatefulPanel initial={game} />);
+
+    await user.click(screen.getByRole('button', { name: 'Supprimer la manche 1' }));
+    await user.click(screen.getByRole('button', { name: 'Supprimer' }));
+
+    // Il ne reste qu'une manche, renumérotée 1 : c'est celle qui valait 7.
+    expect(screen.getByLabelText('Score de Alice, manche 1')).toHaveValue(7);
+    const footer = within(screen.getByRole('table')).getAllByRole('row').at(-1);
+    expect(within(footer as HTMLTableRowElement).getAllByRole('cell')[0]).toHaveTextContent('7');
+  });
+
+  // Une partie garde toujours au moins une manche : celle-ci fournit la grille
+  // affichée, et vider la partie reviendrait à la supprimer.
+  it('n’offre pas de supprimer la dernière manche restante', () => {
+    renderPanel({ game: makeGame(1) });
+
+    expect(screen.queryByRole('button', { name: /supprimer la manche/i })).not.toBeInTheDocument();
   });
 });
 

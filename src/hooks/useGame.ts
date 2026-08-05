@@ -5,6 +5,7 @@ import {
   addRound,
   createGame,
   finishGame,
+  removeRound,
   reopenGame,
   setRoundDuration,
   setScore,
@@ -47,6 +48,7 @@ type Action =
   | { readonly type: 'draw-free'; readonly board: Board }
   | { readonly type: 'start-game'; readonly game: Game; readonly at: string }
   | { readonly type: 'new-round'; readonly board: Board; readonly id: string; readonly at: string }
+  | { readonly type: 'remove-round'; readonly roundId: string }
   | {
       readonly type: 'set-score';
       readonly roundId: string;
@@ -95,6 +97,9 @@ function reducer(state: State, action: Action): State {
       return mapCurrent(state, (game) =>
         addRound(game, action.board, action.id, action.at),
       );
+
+    case 'remove-round':
+      return mapCurrent(state, (game) => removeRound(game, action.roundId));
 
     case 'set-score':
       return mapCurrent(state, (game) =>
@@ -205,6 +210,14 @@ export function useGame() {
     dispatch({ type: 'start-game', game, at });
   }, []);
 
+  /**
+   * Retirer la dernière manche ramène la grille — et le chronomètre, qui se
+   * raccroche à l'identifiant de la manche courante — sur celle qui précède.
+   */
+  const removeRoundFor = useCallback((roundId: string) => {
+    dispatch({ type: 'remove-round', roundId });
+  }, []);
+
   const setScoreFor = useCallback(
     (roundId: string, playerId: PlayerId, points: number | null) => {
       dispatch({ type: 'set-score', roundId, playerId, points });
@@ -258,6 +271,7 @@ export function useGame() {
     currentRoundId: currentGame?.rounds.at(-1)?.id ?? null,
     drawFree,
     newRound,
+    removeRound: removeRoundFor,
     startGame,
     setScore: setScoreFor,
     setDuration,

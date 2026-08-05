@@ -176,7 +176,8 @@
   padding: var(--space-2xs) 0;
 }
 
-.game__chip-action {
+.game__chip-action,
+.game__round-remove {
   border: 0;
   border-radius: 50%;
   background: none;
@@ -189,7 +190,11 @@
   flex-shrink: 0;
 }
 
-.game__chip-action:hover {
+.game__chip-action:hover,
+.game__round-remove:hover,
+/* Confirmation ouverte : le « × » reste marqué, il rappelle quelle manche
+   la question vise. */
+.game__round-remove[aria-expanded='true'] {
   background-color: var(--color-surface);
   color: var(--color-text);
 }
@@ -252,6 +257,24 @@
 
 .game__score {
   appearance: textfield;
+}
+
+/* Comme dans l'historique, la confirmation se signale par la couleur : le seul
+   ajout d'une ligne passerait inaperçu dans un tableau. */
+.game__table tr[data-confirming='true'] th,
+.game__table tr[data-confirming='true'] td {
+  border-color: var(--color-accent);
+}
+
+/* La question et ses deux boutons ne tiennent pas sur une ligne à la largeur du
+   panneau : on empile plutôt que de laisser le tableau les tasser en colonne. */
+.game__confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-2xs);
+  text-align: left;
 }
 
 .game__total {

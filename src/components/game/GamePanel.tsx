@@ -30,6 +30,7 @@ type GamePanelProps = {
   readonly pastGames: readonly Game[];
   readonly onStart: (input: NewGameInput) => void;
   readonly onSetScore: (roundId: string, playerId: PlayerId, points: number | null) => void;
+  readonly onRemoveRound: (roundId: string) => void;
   readonly onSetDuration: (seconds: number) => void;
   readonly onSetPrefs: (prefs: Preferences) => void;
   readonly onFinish: () => void;
@@ -62,6 +63,7 @@ export function GamePanel({
   pastGames,
   onStart,
   onSetScore,
+  onRemoveRound,
   onSetDuration,
   onSetPrefs,
   onFinish,
@@ -112,7 +114,7 @@ export function GamePanel({
             </div>
           )}
 
-          <ScoreTable game={game} onSetScore={onSetScore} />
+          <ScoreTable game={game} onSetScore={onSetScore} onRemoveRound={onRemoveRound} />
 
           <DurationField value={game.roundDurationSeconds} onChange={onSetDuration} />
 

@@ -128,6 +128,25 @@ export function addRound(game: Game, board: Board, id: string, drawnAt: string):
 }
 
 /**
+ * Retire une manche, et avec elle les scores qui y étaient saisis — une manche
+ * annulée ne doit plus peser sur les totaux.
+ *
+ * Une partie garde toujours au moins une manche : elle en tire une dès sa
+ * création, et c'est celle-ci qui fournit la grille affichée. Vider la partie de
+ * ses manches reviendrait à la supprimer, ce que l'historique fait déjà.
+ */
+export function removeRound(game: Game, roundId: string): Game {
+  if (!game.rounds.some((round) => round.id === roundId)) {
+    throw new RangeError(`Manche inconnue : ${roundId}`);
+  }
+  if (game.rounds.length <= 1) {
+    throw new RangeError('Une partie garde au moins une manche.');
+  }
+
+  return { ...game, rounds: game.rounds.filter((round) => round.id !== roundId) };
+}
+
+/**
  * Enregistre le score d'un joueur pour une manche. `null` efface la saisie —
  * ce qui n'est pas la même chose qu'un score de 0, lequel est une saisie
  * valide et se distingue de l'absence dans le tableau.

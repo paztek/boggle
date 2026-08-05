@@ -281,6 +281,12 @@ Dans le panneau droit :
 - La feuille de scores est un tableau à `1 + n` colonnes (numéro de manche, puis un joueur par
   colonne), avec les totaux dérivés en pied. Au-delà de trois ou quatre joueurs, elle défile
   **horizontalement dans son conteneur** plutôt que d'élargir la page.
+- Une colonne de suppression s'ajoute en fin de ligne dès la **deuxième manche** — la dernière
+  manche restante n'est pas supprimable, la colonne n'aurait rien à porter. Son en-tête est vide à
+  l'œil mais nommé pour un lecteur d'écran. La confirmation s'affiche dans une **ligne pleine
+  largeur** sous la manche visée : à la largeur d'un panneau, l'étaler en colonne la tasserait. Sa
+  mise en page vit dans un `div` interne, jamais sur la cellule : passer un `td` en `display: flex`
+  le sortirait du tableau, et `colspan` cesserait de s'appliquer.
 - Les champs numériques (nombre de manches, score cible) gardent la saisie telle quelle — y compris
   vide, le temps de retaper — et ne sont ramenés dans leurs bornes qu'à la sortie du champ. Les
   contraindre à chaque frappe rendrait impossible d'effacer pour retaper.
@@ -504,5 +510,6 @@ elles disent ce qui a été tranché, et pourquoi, afin qu'on ne les rouvre pas 
 | Vérification d'un mot litigieux par lien sortant | **Tranchée** — lien vers le vérificateur de la FFSc dans le panneau des règles ; seul lien externe de l'application |
 | Conservation de l'historique des parties terminées | **Tranchée** — les 20 dernières parties sont conservées et peuvent être reprises |
 | Ajout d'un joueur en cours de partie | **Tranchée** — hors périmètre ; `addPlayer` reste disponible côté domaine, avec ses tests, si le besoin revient |
+| Suppression d'une manche | **Tranchée** — « × » sur la ligne, confirmation sur place ; `removeRound` refuse de vider la partie de ses manches, la dernière fournissant la grille affichée |
 | Grille masquée quand le décompte n'est pas actif | **Tranchée** — flou + bouton couvrant toute la grille (« Démarrer » à l'arrêt, « Reprendre » en pause), révélée en (re)lançant le chrono ; évite l'avantage de celui qui manipule l'appareil |
 | Licence du dépôt | **Tranchée** — [MIT](../LICENSE) : reprise libre, à condition de conserver la mention de copyright |

@@ -58,6 +58,7 @@ export default function App() {
         pastGames={game.pastGames}
         onStart={game.startGame}
         onSetScore={game.setScore}
+        onRemoveRound={game.removeRound}
         onSetDuration={game.setDuration}
         onSetPrefs={game.setPrefs}
         onFinish={game.finishCurrent}

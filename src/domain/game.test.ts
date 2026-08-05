@@ -8,6 +8,7 @@ import {
   createGame,
   endProgress,
   finishGame,
+  removeRound,
   reopenGame,
   setRoundDuration,
   setScore,
@@ -134,6 +135,45 @@ describe('addRound', () => {
     const wrongSize = drawBoard(diceFor(5), 5, createSeededRandom(1));
 
     expect(() => addRound(newGame(), wrongSize, 'r-1', T0)).toThrow(RangeError);
+  });
+});
+
+describe('removeRound', () => {
+  it('retire la manche et les scores qui l’accompagnaient', () => {
+    const game = removeRound(playedGame(), 'r-1');
+
+    expect(game.rounds.map((round) => round.id)).toEqual(['r-2']);
+    expect(totals(game)).toEqual({ [ALICE.id]: 7, [BOB.id]: 4 });
+  });
+
+  it('ne mute pas la partie d’origine', () => {
+    const before = playedGame();
+    removeRound(before, 'r-1');
+
+    expect(before.rounds).toHaveLength(2);
+  });
+
+  it('refuse une manche inconnue', () => {
+    expect(() => removeRound(playedGame(), 'r-inconnue')).toThrow(RangeError);
+  });
+
+  it('refuse de retirer la dernière manche restante', () => {
+    const game = addRound(newGame(), board(), 'r-1', T0);
+
+    expect(() => removeRound(game, 'r-1')).toThrow(RangeError);
+  });
+
+  it('renumérote implicitement les manches suivantes — le rang vient de la position', () => {
+    const game = removeRound(playedGame(), 'r-1');
+
+    expect(game.rounds[0]?.id).toBe('r-2');
+  });
+
+  it('fait reculer l’avancement d’un objectif exprimé en manches', () => {
+    const game: Game = { ...playedGame(), endCondition: { kind: 'manches', rounds: 2 } };
+
+    expect(endProgress(game).reached).toBe(true);
+    expect(endProgress(removeRound(game, 'r-2')).reached).toBe(false);
   });
 });
 

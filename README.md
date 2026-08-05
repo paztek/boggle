@@ -22,6 +22,7 @@ manche.
 - Gestion des joueurs, avec répertoire local des joueurs déjà rencontrés
 - Mode de fin de partie : libre, nombre de manches, ou score à atteindre
 - Saisie du score de chaque joueur, manche par manche ; totaux et classement dérivés
+- Suppression d'une manche tirée par erreur, avec confirmation
 - Chronomètre de manche à durée réglable, avec alerte visuelle et sonore avant la fin ; l'écran
   reste allumé pendant le décompte
 - Rappel du barème officiel à l'écran, et lien vers le
