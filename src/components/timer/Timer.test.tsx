@@ -9,7 +9,6 @@ function renderTimer(overrides: Partial<Parameters<typeof Timer>[0]> = {}) {
     remainingMs: 180_000,
     alerting: false,
     onPause: vi.fn(),
-    onResume: vi.fn(),
     onReset: vi.fn(),
     ...overrides,
   };
@@ -51,13 +50,12 @@ describe('Timer — contrôles selon l’état', () => {
     expect(props.onReset).toHaveBeenCalled();
   });
 
-  it('suspendu : reprise', async () => {
-    const user = userEvent.setup();
-    const props = renderTimer({ status: 'suspendu' });
+  it('suspendu : réinitialisation, la reprise étant portée par la grille masquée', () => {
+    renderTimer({ status: 'suspendu' });
 
-    await user.click(screen.getByRole('button', { name: /reprendre/i }));
-
-    expect(props.onResume).toHaveBeenCalled();
+    // « Reprendre » vit sur la grille (cf. App), pas dans le chrono.
+    expect(screen.queryByRole('button', { name: /reprendre/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /réinitialiser/i })).toBeInTheDocument();
   });
 });
 

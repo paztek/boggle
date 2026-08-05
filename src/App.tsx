@@ -27,10 +27,12 @@ export default function App() {
     prefs: game.prefs,
   });
 
-  // Tant que la manche n'a pas démarré, la grille reste masquée : celui qui
-  // manipule l'appli ne doit pas lire les lettres avant les autres. Une nouvelle
-  // manche remet le chrono à « arrete », donc masque de nouveau la grille.
-  const covered = inGame && timer.status === 'arrete';
+  // La grille reste masquée tant que le décompte n'est pas actif : avant le
+  // démarrage (« arrete ») comme pendant une pause (« suspendu »). Celui qui
+  // manipule l'appli ne doit pas lire les lettres quand les autres ne jouent
+  // pas. Une nouvelle manche repasse à « arrete », donc masque de nouveau.
+  const paused = timer.status === 'suspendu';
+  const covered = inGame && (timer.status === 'arrete' || paused);
 
   // L'écran ne doit pas s'éteindre au milieu d'une manche chronométrée.
   useWakeLock(game.prefs.keepAwake && timer.running);
@@ -75,11 +77,16 @@ export default function App() {
           <Board board={game.board} blurred={covered} />
 
           {/* Le bouton couvre toute la grille : le libellé est centré, mais la
-              zone cliquable est la grille entière. Démarrer révèle et lance le
-              chrono d'un même geste (qui débloque aussi l'audio sur iOS). */}
+              zone cliquable est la grille entière. Révéler et (re)lancer le
+              chrono sont un même geste (qui débloque aussi l'audio sur iOS).
+              En pause, on reprend le décompte plutôt que de le remettre à zéro. */}
           {covered && (
-            <button type="button" className="app__reveal" onClick={timer.start}>
-              <span className="app__reveal-label">Démarrer</span>
+            <button
+              type="button"
+              className="app__reveal"
+              onClick={paused ? timer.resume : timer.start}
+            >
+              <span className="app__reveal-label">{paused ? 'Reprendre' : 'Démarrer'}</span>
             </button>
           )}
         </div>
@@ -90,7 +97,6 @@ export default function App() {
             remainingMs={timer.remainingMs}
             alerting={timer.alerting}
             onPause={timer.pause}
-            onResume={timer.resume}
             onReset={timer.reset}
           />
         )}

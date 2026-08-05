@@ -119,11 +119,12 @@ par un bip, désactivable. Ces réglages tiennent à l'appareil et valent pour t
 Le chronomètre ne se lance jamais tout seul, et à zéro il se contente de signaler : il n'enchaîne
 pas la manche suivante et ne saisit aucun score.
 
-Tant qu'une manche n'a pas démarré, la grille est **masquée** : les lettres sont floutées et
-indevinables, et le bouton **Démarrer** couvre toute la grille. Le clic révèle la grille et lance le
-chrono en même temps — sans quoi la personne qui manipule l'appareil verrait les lettres avant les
-autres et prendrait de l'avance. Chaque nouvelle manche remasque la grille jusqu'au démarrage
-suivant.
+Tant que le décompte n'est pas actif, la grille est **masquée** : les lettres sont floutées et
+indevinables, et un bouton couvrant toute la grille la révèle. C'est le cas avant le démarrage (le
+bouton affiche **Démarrer**) comme pendant une **pause** (il affiche **Reprendre**) : le clic révèle
+la grille et (re)lance le chrono d'un même geste — sans quoi la personne qui manipule l'appareil
+verrait les lettres pendant que les autres ne jouent pas et prendrait de l'avance. Chaque nouvelle
+manche remasque la grille jusqu'au démarrage suivant.
 
 Pendant le décompte, l'application demande à l'appareil de **garder l'écran allumé** — personne ne
 touche l'écran pendant une manche, et il s'éteindrait au milieu. Le réglage est désactivable, et

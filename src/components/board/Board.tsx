@@ -5,9 +5,10 @@ import './board.css';
 type BoardProps = {
   readonly board: BoardModel;
   /**
-   * Grille masquée tant que la manche n'a pas démarré : les lettres sont
-   * floutées à l'écran et ne sont pas énoncées aux lecteurs d'écran, sans quoi
-   * la personne qui manipule l'appli prendrait de l'avance.
+   * Grille masquée tant que le décompte n'est pas actif — avant le démarrage
+   * comme pendant une pause : les lettres sont floutées à l'écran et ne sont pas
+   * énoncées aux lecteurs d'écran, sans quoi la personne qui manipule l'appli
+   * prendrait de l'avance.
    */
   readonly blurred?: boolean;
 };
@@ -16,7 +17,7 @@ type BoardProps = {
 export function Board({ board, blurred = false }: BoardProps) {
   const label = `Grille de Boggle ${board.size} par ${board.size}`;
   const description = blurred
-    ? `${label} : masquée jusqu'au démarrage de la manche`
+    ? `${label} : masquée tant que le décompte n'est pas en cours`
     : `${label} : ${board.tiles.map((tile) => tile.face).join(', ')}`;
 
   return (

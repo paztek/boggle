@@ -6,7 +6,6 @@ type TimerProps = {
   readonly remainingMs: number;
   readonly alerting: boolean;
   readonly onPause: () => void;
-  readonly onResume: () => void;
   readonly onReset: () => void;
 };
 
@@ -26,7 +25,6 @@ export function Timer({
   remainingMs,
   alerting,
   onPause,
-  onResume,
   onReset,
 }: TimerProps) {
   const finished = status === 'termine';
@@ -54,18 +52,13 @@ export function Timer({
       )}
 
       <div className="timer__actions">
-        {/* « Démarrer » ne vit pas ici mais sur la grille masquée (cf. App) :
-            révéler et lancer le chrono sont un même geste. À l'arrêt, le chrono
-            n'affiche donc que sa valeur. */}
+        {/* « Démarrer » et « Reprendre » ne vivent pas ici mais sur la grille
+            masquée (cf. App) : révéler et (re)lancer le chrono sont un même
+            geste. À l'arrêt comme en pause, le chrono ne montre que sa valeur —
+            et, en pause, de quoi remettre à zéro. */}
         {status === 'en-cours' && (
           <button type="button" className="timer__button" onClick={onPause}>
             Pause
-          </button>
-        )}
-
-        {status === 'suspendu' && (
-          <button type="button" className="timer__button timer__button--go" onClick={onResume}>
-            Reprendre
           </button>
         )}
 
