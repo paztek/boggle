@@ -10,7 +10,16 @@ import {
   STOPPED,
   type TimerState,
 } from '../domain/timer.ts';
-import { ALERT_BEEP, cancelBeeps, END_BEEP, scheduleBeeps, unlockAudio } from '../lib/audio.ts';
+import {
+  ALERT_BEEP,
+  ALERT_BEEP_COUNT,
+  ALERT_BEEP_INTERVAL_MS,
+  cancelBeeps,
+  END_BEEP,
+  scheduleBeeps,
+  unlockAudio,
+  type Beep,
+} from '../lib/audio.ts';
 import { readTimerSession, writeTimerSession, type Preferences } from '../lib/storage.ts';
 
 /** Cadence de rafraîchissement de l'affichage. Le restant vient de `Date.now()`. */
@@ -77,8 +86,12 @@ export function useTimer({ gameId, roundId, durationSeconds, prefs }: UseTimerPa
   useEffect(() => cancelBeeps, []);
 
   /**
-   * Programme d'avance les deux bips dans le graphe audio, plutôt que de les
+   * Programme d'avance les bips dans le graphe audio, plutôt que de les
    * déclencher au tic : un onglet en arrière-plan les jouerait en retard.
+   *
+   * Au passage du seuil d'alerte, trois bips rapprochés préviennent que la fin
+   * approche ; à l'échéance, un unique bip plus grave, plus long et plus fort
+   * la constate sans être confondu avec les précédents.
    */
   const scheduleFor = useCallback(
     (timer: TimerState) => {
@@ -88,14 +101,16 @@ export function useTimer({ gameId, roundId, durationSeconds, prefs }: UseTimerPa
       const left = timer.endsAt - Date.now();
       if (left <= 0) return;
 
+      const beeps: Beep[] = [];
+
       const alertDelay = left - prefs.alertSeconds * 1000;
-      const beeps =
-        prefs.alertSeconds > 0 && alertDelay > 0
-          ? [
-              { delayMs: alertDelay, ...ALERT_BEEP },
-              { delayMs: left, ...END_BEEP },
-            ]
-          : [{ delayMs: left, ...END_BEEP }];
+      if (prefs.alertSeconds > 0 && alertDelay > 0) {
+        for (let index = 0; index < ALERT_BEEP_COUNT; index += 1) {
+          beeps.push({ delayMs: alertDelay + index * ALERT_BEEP_INTERVAL_MS, ...ALERT_BEEP });
+        }
+      }
+
+      beeps.push({ delayMs: left, ...END_BEEP });
 
       scheduleBeeps(beeps);
     },

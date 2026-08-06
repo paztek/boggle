@@ -20,6 +20,8 @@ export type Beep = {
   readonly delayMs: number;
   readonly frequency: number;
   readonly durationMs: number;
+  /** Multiplie le volume de crête. Absent ou 1 : volume nominal. */
+  readonly gainScale?: number;
 };
 
 let context: AudioContext | null = null;
@@ -79,13 +81,14 @@ export function scheduleBeeps(beeps: readonly Beep[]): void {
     try {
       const oscillator = context.createOscillator();
       const gain = context.createGain();
+      const peak = PEAK_GAIN * (beep.gainScale ?? 1);
 
       oscillator.type = 'sine';
       oscillator.frequency.value = beep.frequency;
 
       gain.gain.setValueAtTime(0, startAt);
-      gain.gain.linearRampToValueAtTime(PEAK_GAIN, startAt + ATTACK_SECONDS);
-      gain.gain.setValueAtTime(PEAK_GAIN, Math.max(startAt, stopAt - RELEASE_SECONDS));
+      gain.gain.linearRampToValueAtTime(peak, startAt + ATTACK_SECONDS);
+      gain.gain.setValueAtTime(peak, Math.max(startAt, stopAt - RELEASE_SECONDS));
       gain.gain.linearRampToValueAtTime(0, stopAt);
 
       oscillator.connect(gain);
@@ -102,5 +105,12 @@ export function scheduleBeeps(beeps: readonly Beep[]): void {
 
 /** Bip d'avertissement : bref et aigu. */
 export const ALERT_BEEP = { frequency: 880, durationMs: 140 } as const;
-/** Bip de fin : plus grave et plus long, pour ne pas être confondu. */
-export const END_BEEP = { frequency: 440, durationMs: 600 } as const;
+/** Nombre de bips d'avertissement joués d'affilée au passage du seuil d'alerte. */
+export const ALERT_BEEP_COUNT = 3;
+/** Écart entre deux bips d'avertissement, mesuré du début de l'un au début du suivant. */
+export const ALERT_BEEP_INTERVAL_MS = 260;
+/**
+ * Bip de fin : plus grave, plus long et plus fort, pour se détacher nettement
+ * des trois bips d'avertissement qui l'ont précédé.
+ */
+export const END_BEEP = { frequency: 440, durationMs: 600, gainScale: 1.35 } as const;
