@@ -339,8 +339,10 @@ fin est donc portée par la couleur, un libellé et la pulsation — et annoncé
 dédiée. Le décompte lui-même n'est pas annoncé : une zone vive changeant quatre fois par seconde
 noierait un lecteur d'écran.
 
-**Des bips programmés d'avance.** `lib/audio.ts` synthétise deux bips par oscillateur WebAudio :
-zéro octet ajouté au bundle, aucune requête réseau. Ils ne sont pas déclenchés par un tic mais
+**Des bips programmés d'avance.** `lib/audio.ts` synthétise des bips par oscillateur WebAudio :
+zéro octet ajouté au bundle, aucune requête réseau. Au passage du seuil d'alerte, **trois bips
+rapprochés** préviennent que la fin approche ; à l'échéance, un **unique bip plus grave, plus long et
+plus fort** la constate sans être confondu avec les précédents. Ils ne sont pas déclenchés par un tic mais
 **programmés dans le graphe audio** au démarrage, aux décalages voulus sur `AudioContext.currentTime` :
 un onglet en arrière-plan les jouerait sinon en retard. Deux conséquences pratiques :
 
